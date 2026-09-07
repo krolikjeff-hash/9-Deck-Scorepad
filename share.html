@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E3122">
+<title>9 Deck Scorepad — scan to open</title>
+<link rel="icon" href="icon-32.png" sizes="32x32">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --baize:#14432E; --baize-dark:#0E3122; --baize-line:#1D5A3E;
+  --stock:#F6F1E4; --stock-edge:#E0D6BF; --ink:#17140F; --ink-soft:#6A6252;
+  --brass:#A8811F; --brass-soft:#F0E4C2;
+  --font-body:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-card:"Fraunces",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--baize-dark);
+  background-image:radial-gradient(ellipse at 50% 0%, var(--baize) 0%, var(--baize-dark) 70%);
+  background-attachment:fixed;
+  color:var(--stock); font-family:var(--font-body); line-height:1.45;
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:28px 20px calc(28px + env(safe-area-inset-bottom));
+}
+.card{
+  background:var(--stock); color:var(--ink);
+  border:1px solid var(--stock-edge); border-radius:16px;
+  box-shadow:0 14px 34px rgba(0,0,0,.38);
+  max-width:380px; width:100%; padding:26px 24px 22px; text-align:center;
+}
+.mark{display:block; margin:0 auto 14px; color:var(--baize-dark)}
+h1{font-family:var(--font-card); font-size:21px; font-weight:700; margin:0 0 4px}
+.sub{font-size:14px; color:var(--ink-soft); margin:0 0 20px}
+.qr{display:block; width:100%; max-width:260px; margin:0 auto; height:auto}
+/* Colours are set as attributes on the shapes too. A QR that depends on a
+   stylesheet is a black square the moment the stylesheet does not arrive. */
+.qrwrap{background:#fff; border:1px solid var(--stock-edge); border-radius:12px;
+  padding:14px; display:inline-block; margin-bottom:18px}
+.url{font-size:13px; word-break:break-all; color:var(--ink-soft); margin:0 0 16px;
+  font-variant-numeric:tabular-nums}
+.btnrow{display:flex; gap:8px; justify-content:center; margin-bottom:20px}
+.btn{font:inherit; font-size:14px; cursor:pointer; padding:10px 16px; border-radius:9px;
+  border:1px solid var(--stock-edge); background:#EDE6D4; color:var(--ink)}
+.btn.go{background:var(--brass); border-color:var(--brass); color:#FFF9E8; font-weight:700;
+  text-decoration:none; display:inline-block}
+.how{border-top:1px solid var(--stock-edge); padding-top:16px; text-align:left;
+  font-size:13px; color:var(--ink-soft)}
+.how b{color:var(--ink); font-weight:600}
+.how p{margin:0 0 8px}
+.how p:last-child{margin:0}
+.toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
+  background:var(--ink); color:var(--stock); padding:9px 15px; border-radius:20px;
+  font-size:14px; opacity:0; transition:opacity .18s; pointer-events:none}
+.toast.on{opacity:1}
+@media print{
+  body{background:#fff; color:#000; display:block; padding:0}
+  .card{box-shadow:none; border:none; max-width:none; padding:0; margin:0 auto}
+  .btnrow,.toast{display:none}
+  .qrwrap{border:none; padding:0}
+  .qr path{fill:#000!important}
+  .mark{color:#000}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="card">
+  <svg class="mark" width="46" height="73" viewBox="0 0 500 790" aria-hidden="true">
+    <path fill-rule="evenodd" fill="currentColor" d="M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z"/>
+  </svg>
+  <h1>9 Deck Scorepad</h1>
+  <p class="sub">Point a camera at this to open it</p>
+
+  <div class="qrwrap">
+    <svg class="qr" viewBox="-2 -2 37 37" shape-rendering="crispEdges"
+         role="img" aria-label="QR code linking to the scorepad">
+      <rect x="-2" y="-2" width="37" height="37" fill="#ffffff"/>
+      <path d="M0 0h7v1h-7Z M10 0h3v1h-3Z M16 0h1v1h-1Z M19 0h3v1h-3Z M23 0h1v1h-1Z M26 0h7v1h-7Z M0 1h1v1h-1Z M6 1h1v1h-1Z M9 1h1v1h-1Z M12 1h1v1h-1Z M15 1h2v1h-2Z M18 1h1v1h-1Z M20 1h1v1h-1Z M26 1h1v1h-1Z M32 1h1v1h-1Z M0 2h1v1h-1Z M2 2h3v1h-3Z M6 2h1v1h-1Z M8 2h1v1h-1Z M11 2h2v1h-2Z M14 2h3v1h-3Z M21 2h1v1h-1Z M24 2h1v1h-1Z M26 2h1v1h-1Z M28 2h3v1h-3Z M32 2h1v1h-1Z M0 3h1v1h-1Z M2 3h3v1h-3Z M6 3h1v1h-1Z M8 3h1v1h-1Z M10 3h1v1h-1Z M12 3h1v1h-1Z M15 3h1v1h-1Z M18 3h1v1h-1Z M22 3h2v1h-2Z M26 3h1v1h-1Z M28 3h3v1h-3Z M32 3h1v1h-1Z M0 4h1v1h-1Z M2 4h3v1h-3Z M6 4h1v1h-1Z M8 4h1v1h-1Z M10 4h3v1h-3Z M14 4h3v1h-3Z M20 4h1v1h-1Z M23 4h1v1h-1Z M26 4h1v1h-1Z M28 4h3v1h-3Z M32 4h1v1h-1Z M0 5h1v1h-1Z M6 5h1v1h-1Z M8 5h1v1h-1Z M13 5h1v1h-1Z M17 5h3v1h-3Z M26 5h1v1h-1Z M32 5h1v1h-1Z M0 6h7v1h-7Z M8 6h1v1h-1Z M10 6h1v1h-1Z M12 6h1v1h-1Z M14 6h1v1h-1Z M16 6h1v1h-1Z M18 6h1v1h-1Z M20 6h1v1h-1Z M22 6h1v1h-1Z M24 6h1v1h-1Z M26 6h7v1h-7Z M8 7h4v1h-4Z M16 7h1v1h-1Z M19 7h5v1h-5Z M0 8h1v1h-1Z M2 8h5v1h-5Z M9 8h3v1h-3Z M13 8h1v1h-1Z M16 8h2v1h-2Z M19 8h1v1h-1Z M22 8h3v1h-3Z M26 8h5v1h-5Z M0 9h1v1h-1Z M2 9h1v1h-1Z M4 9h1v1h-1Z M8 9h1v1h-1Z M10 9h2v1h-2Z M13 9h1v1h-1Z M16 9h6v1h-6Z M23 9h1v1h-1Z M26 9h2v1h-2Z M29 9h2v1h-2Z M32 9h1v1h-1Z M0 10h3v1h-3Z M4 10h1v1h-1Z M6 10h1v1h-1Z M9 10h3v1h-3Z M13 10h3v1h-3Z M17 10h1v1h-1Z M21 10h2v1h-2Z M24 10h1v1h-1Z M28 10h1v1h-1Z M30 10h1v1h-1Z M1 11h1v1h-1Z M3 11h2v1h-2Z M9 11h2v1h-2Z M13 11h1v1h-1Z M15 11h1v1h-1Z M17 11h2v1h-2Z M21 11h2v1h-2Z M25 11h2v1h-2Z M28 11h5v1h-5Z M4 12h1v1h-1Z M6 12h1v1h-1Z M8 12h4v1h-4Z M14 12h1v1h-1Z M16 12h1v1h-1Z M19 12h1v1h-1Z M22 12h4v1h-4Z M27 12h3v1h-3Z M31 12h2v1h-2Z M1 13h1v1h-1Z M7 13h1v1h-1Z M10 13h1v1h-1Z M13 13h1v1h-1Z M15 13h1v1h-1Z M17 13h2v1h-2Z M22 13h2v1h-2Z M26 13h1v1h-1Z M29 13h1v1h-1Z M31 13h2v1h-2Z M0 14h2v1h-2Z M3 14h1v1h-1Z M6 14h1v1h-1Z M11 14h1v1h-1Z M15 14h2v1h-2Z M18 14h1v1h-1Z M25 14h2v1h-2Z M29 14h1v1h-1Z M31 14h1v1h-1Z M0 15h5v1h-5Z M7 15h4v1h-4Z M15 15h1v1h-1Z M18 15h1v1h-1Z M21 15h1v1h-1Z M23 15h4v1h-4Z M30 15h1v1h-1Z M0 16h3v1h-3Z M6 16h2v1h-2Z M9 16h1v1h-1Z M11 16h2v1h-2Z M15 16h1v1h-1Z M17 16h2v1h-2Z M22 16h1v1h-1Z M24 16h2v1h-2Z M27 16h3v1h-3Z M32 16h1v1h-1Z M0 17h1v1h-1Z M3 17h3v1h-3Z M7 17h2v1h-2Z M11 17h2v1h-2Z M14 17h1v1h-1Z M16 17h1v1h-1Z M18 17h4v1h-4Z M23 17h1v1h-1Z M26 17h2v1h-2Z M29 17h2v1h-2Z M32 17h1v1h-1Z M0 18h3v1h-3Z M5 18h2v1h-2Z M11 18h1v1h-1Z M13 18h3v1h-3Z M18 18h1v1h-1Z M20 18h2v1h-2Z M26 18h3v1h-3Z M30 18h2v1h-2Z M2 19h1v1h-1Z M7 19h2v1h-2Z M10 19h1v1h-1Z M13 19h1v1h-1Z M15 19h2v1h-2Z M20 19h2v1h-2Z M23 19h1v1h-1Z M25 19h7v1h-7Z M2 20h5v1h-5Z M11 20h1v1h-1Z M13 20h3v1h-3Z M18 20h2v1h-2Z M22 20h3v1h-3Z M27 20h3v1h-3Z M32 20h1v1h-1Z M0 21h2v1h-2Z M3 21h2v1h-2Z M7 21h1v1h-1Z M12 21h1v1h-1Z M14 21h4v1h-4Z M21 21h1v1h-1Z M23 21h1v1h-1Z M26 21h1v1h-1Z M32 21h1v1h-1Z M0 22h1v1h-1Z M3 22h1v1h-1Z M5 22h2v1h-2Z M9 22h1v1h-1Z M11 22h4v1h-4Z M17 22h1v1h-1Z M20 22h3v1h-3Z M26 22h2v1h-2Z M29 22h3v1h-3Z M0 23h1v1h-1Z M5 23h1v1h-1Z M8 23h2v1h-2Z M11 23h3v1h-3Z M16 23h1v1h-1Z M18 23h9v1h-9Z M30 23h1v1h-1Z M32 23h1v1h-1Z M0 24h1v1h-1Z M6 24h1v1h-1Z M10 24h1v1h-1Z M13 24h2v1h-2Z M16 24h2v1h-2Z M19 24h1v1h-1Z M22 24h1v1h-1Z M24 24h5v1h-5Z M8 25h2v1h-2Z M12 25h3v1h-3Z M16 25h4v1h-4Z M21 25h1v1h-1Z M24 25h1v1h-1Z M28 25h1v1h-1Z M30 25h1v1h-1Z M32 25h1v1h-1Z M0 26h7v1h-7Z M9 26h1v1h-1Z M15 26h3v1h-3Z M21 26h1v1h-1Z M23 26h2v1h-2Z M26 26h1v1h-1Z M28 26h1v1h-1Z M30 26h2v1h-2Z M0 27h1v1h-1Z M6 27h1v1h-1Z M8 27h3v1h-3Z M12 27h1v1h-1Z M15 27h1v1h-1Z M17 27h8v1h-8Z M28 27h3v1h-3Z M32 27h1v1h-1Z M0 28h1v1h-1Z M2 28h3v1h-3Z M6 28h1v1h-1Z M8 28h1v1h-1Z M11 28h1v1h-1Z M13 28h2v1h-2Z M16 28h1v1h-1Z M22 28h1v1h-1Z M24 28h6v1h-6Z M31 28h2v1h-2Z M0 29h1v1h-1Z M2 29h3v1h-3Z M6 29h1v1h-1Z M8 29h1v1h-1Z M11 29h1v1h-1Z M13 29h3v1h-3Z M18 29h2v1h-2Z M21 29h1v1h-1Z M25 29h1v1h-1Z M28 29h2v1h-2Z M31 29h2v1h-2Z M0 30h1v1h-1Z M2 30h3v1h-3Z M6 30h1v1h-1Z M8 30h3v1h-3Z M12 30h1v1h-1Z M14 30h4v1h-4Z M22 30h1v1h-1Z M24 30h4v1h-4Z M29 30h2v1h-2Z M0 31h1v1h-1Z M6 31h1v1h-1Z M9 31h1v1h-1Z M11 31h1v1h-1Z M14 31h2v1h-2Z M20 31h2v1h-2Z M23 31h4v1h-4Z M28 31h3v1h-3Z M0 32h7v1h-7Z M8 32h1v1h-1Z M10 32h1v1h-1Z M15 32h1v1h-1Z M17 32h1v1h-1Z M22 32h4v1h-4Z M27 32h1v1h-1Z M30 32h2v1h-2Z" fill="#0E3122"/>
+    </svg>
+  </div>
+
+  <p class="url">krolikjeff-hash.github.io/9-Deck-Scorepad</p>
+
+  <div class="btnrow">
+    <a class="btn go" href="https://krolikjeff-hash.github.io/9-Deck-Scorepad/">Open it</a>
+    <button class="btn" id="copy">Copy link</button>
+  </div>
+
+  <div class="how">
+    <p><b>Keep it handy.</b> Once it is open, add it to your home screen — it then works
+       with no signal, and it stops the scores being cleared between game nights.</p>
+    <p><b>iPhone:</b> Share button, then Add to Home Screen.</p>
+    <p><b>Android:</b> Chrome menu, then Install app.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast">Link copied</div>
+
+<script>
+document.getElementById("copy").onclick = function () {
+  var url = "https://krolikjeff-hash.github.io/9-Deck-Scorepad/";
+  var done = function () {
+    var t = document.getElementById("toast");
+    t.classList.add("on");
+    setTimeout(function () { t.classList.remove("on"); }, 1800);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done, function () {});
+  } else {
+    var f = document.createElement("textarea");
+    f.value = url; document.body.appendChild(f); f.select();
+    try { document.execCommand("copy"); done(); } catch (e) {}
+    f.remove();
+  }
+};
+</script>
+</body>
+</html>
