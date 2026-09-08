@@ -266,7 +266,19 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 .rfrow.on{border-color:var(--brass);background:#FBF6E6}
 .rfscroll{overflow-x:auto;overflow-y:hidden;border-radius:6px;background:#fff;margin-bottom:8px}
 .rfscroll canvas{display:block;height:var(--rfsh,150px);width:auto;max-width:none}
-.rfline{display:grid;grid-template-columns:70px repeat(3, minmax(0,1fr));gap:6px;align-items:center}
+.rfline{display:grid;grid-template-columns:74px 1fr auto;gap:8px;align-items:center}
+.rftally{display:flex;gap:12px;font-variant-numeric:tabular-nums;font-size:14px;flex-wrap:wrap}
+.rftally b{font-size:16px}
+.rftally .w{color:var(--brass)}
+.rfmode{border:1px solid var(--stock-edge);background:var(--stock-sunk);border-radius:9px;
+  padding:9px 15px;font-size:14px;color:var(--ink)}
+.rfmode[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:#FFF9E8;font-weight:700}
+.rfscroll{cursor:crosshair}
+.rfio{margin-top:12px;border-top:1px solid var(--stock-edge);padding-top:10px}
+.rfio summary{cursor:pointer;font-family:var(--font-card);font-weight:700;font-size:14px}
+.rfio textarea{width:100%;padding:9px;border:1px solid var(--stock-edge);border-radius:8px;
+  background:#fff;color:var(--ink);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.rfio code{background:var(--stock-sunk);padding:1px 4px;border-radius:4px;font-size:12px}
 .rfline select{padding:8px;border:1px solid var(--stock-edge);border-radius:7px;
   background:#fff;color:var(--ink);font-family:var(--font-card);font-weight:700}
 .rfhead{font-size:11px;color:var(--ink-soft);text-align:center}
@@ -384,13 +396,24 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 
     <div class="sheet" id="rfReadSheet" hidden>
       <h2>Read the strips</h2>
-      <p class="note">Set each strip's rank, then enter the counts. Nothing is written to the round until you apply it.</p>
+      <p class="note">Tap each card once as you go. The stamp covers what you have counted, so you can see what is left — the count is the number of stamps, never a number you hold in your head. Tap a stamp again to take it back.</p>
+      <div class="btnrow" id="rfMode" style="margin-bottom:10px"></div>
       <div id="rfStrips"></div>
       <ul class="warns" id="rfWarn"></ul>
       <div class="btnrow" style="margin-top:12px">
         <button class="btn go" id="rfApply">Add these to the round</button>
         <button class="btn" id="rfSave">Download strips</button>
+        <button class="btn" id="rfInfo">Copy strip sizes</button>
       </div>
+      <details class="rfio">
+        <summary>First pass from elsewhere</summary>
+        <p class="note">Paste a set of stamps to start from, then check and correct them here. Positions are <code>u</code>, a fraction along the strip from 0 to 1, or <code>x</code> in strip pixels. Kinds are <code>nat</code>, <code>jok</code>, <code>two</code>.</p>
+        <textarea id="rfPaste" rows="5" spellcheck="false" placeholder='[{"n":1,"rank":"A","marks":[{"u":0.12,"kind":"nat"},{"u":0.31,"kind":"two"}]}]'></textarea>
+        <div class="btnrow" style="margin-top:8px">
+          <button class="btn go" id="rfLoad">Apply these stamps</button>
+          <button class="btn" id="rfDump">Copy what is here now</button>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -477,7 +500,7 @@ var store = (function () {
 
 var MARK_SVG = "<svg class=\"mark\" width=\"53\" height=\"84\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
 var MARK9_SVG = "<svg class=\"mark\" width=\"50\" height=\"79\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
-var APP_VERSION = "2026-09-07e";
+var APP_VERSION = "2026-09-07h";
 var KEY = "ninedecks.v1";
 var LKEY = "ninedecks.local.v1";
 
@@ -1510,13 +1533,25 @@ var reader = (function () {
     else           { A = {x:band.pos - t*H/2, y:0}; G = {x:band.pos + t*H/2, y:H}; }
     var vx = G.x-A.x, vy = G.y-A.y, L = Math.hypot(vx,vy) || 1;
     var d = { x:vx/L, y:vy/L };
-    var n = AXIS === 0 ? { x:-d.y, y:d.x } : { x:d.y, y:-d.x };
-    if (FLIP) n = { x:-n.x, y:-n.y };
+    var n = { x:-d.y, y:d.x };
     return { A:A, G:G, d:d, n:n, L:L };
   }
+  /* The strip's own axes. This must be a rotation, never a reflection: an
+     extraction matrix with a negative determinant mirrors the card faces, so
+     every index comes out as its mirror image and the strip is far harder to
+     read. Flipping is therefore a half turn - negate both axes and start from
+     the other end - never a single negated axis. */
+  function stripBasis(gm){
+    var d = gm.d, A = gm.A;
+    if (AXIS !== 0){ d = { x:-d.x, y:-d.y }; A = gm.G; }   // read a column upward
+    if (FLIP){ d = { x:-d.x, y:-d.y }; A = (A === gm.A) ? gm.G : gm.A; }
+    return { d:d, n:{ x:-d.y, y:d.x }, A:A };
+  }
+
   function toStrip(g, p){
-    var wx = p.x-g.A.x, wy = p.y-g.A.y;
-    return { u: wx*g.d.x + wy*g.d.y, v: wx*g.n.x + wy*g.n.y + lead() };
+    var sb = stripBasis(g);
+    var wx = p.x-sb.A.x, wy = p.y-sb.A.y;
+    return { u: wx*sb.d.x + wy*sb.d.y, v: wx*sb.n.x + wy*sb.n.y + lead() };
   }
 
   function analyse(bitmap, axis){
@@ -1630,9 +1665,10 @@ var reader = (function () {
     g.drawImage(IMG, 0, 0, cv.width, cv.height);
     BANDS.forEach(function(band,i){
       var active = (i === CUR), gm = geom(band);
+      var sb = stripBasis(gm);
       function P(u,v){
-        return { x:(gm.A.x + gm.d.x*u + gm.n.x*(v-lin))*s,
-                 y:(gm.A.y + gm.d.y*u + gm.n.y*(v-lin))*s };
+        return { x:(sb.A.x + sb.d.x*u + sb.n.x*(v-lin))*s,
+                 y:(sb.A.y + sb.d.y*u + sb.n.y*(v-lin))*s };
       }
       var p0=P(0,0), p1=P(gm.L,0), p2=P(gm.L,H), p3=P(0,H);
       g.beginPath(); g.moveTo(p0.x,p0.y); g.lineTo(p1.x,p1.y);
@@ -1660,6 +1696,43 @@ var reader = (function () {
     $("rfDel").disabled = BANDS.length <= 1;
   }
 
+  var MODE = "nat";
+  var MARKS = [["nat","Card","#1E7A46"],["jok","Joker","#A8172B"],["two","2","#1D4ED8"]];
+
+  function tally(st){
+    var t = { nat:0, jok:0, two:0 };
+    (st.marks||[]).forEach(function(m){ t[m.kind]++; });
+    return t;
+  }
+
+  /* Stamping borrowed from cell counting under a microscope: cover each item as
+     it is counted, so the eye can see what is still unassessed and the total is
+     the number of marks rather than a running tally in the head. */
+  function paintMarks(cv, st){
+    var g = cv.getContext("2d");
+    (st.marks||[]).forEach(function(m, i){
+      var col = (MARKS.filter(function(x){ return x[0]===m.kind; })[0] || MARKS[0])[2];
+      g.beginPath(); g.arc(m.x, m.y, 26, 0, Math.PI*2);
+      g.fillStyle = col + "cc"; g.fill();
+      g.lineWidth = 3; g.strokeStyle = "#FFFFFFdd"; g.stroke();
+      g.fillStyle = "#fff"; g.font = "bold 26px sans-serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText(m.kind === "nat" ? String(i+1) : (m.kind === "jok" ? "J" : "2"), m.x, m.y);
+      g.textAlign = "start"; g.textBaseline = "alphabetic";
+    });
+  }
+
+  function modeBar(){
+    var box = $("rfMode"); if (!box) return;
+    box.innerHTML = "";
+    MARKS.forEach(function(m){
+      var b = el("button", "rfmode", m[1]);
+      b.setAttribute("aria-pressed", MODE === m[0] ? "true" : "false");
+      b.onclick = function(){ MODE = m[0]; modeBar(); };
+      box.appendChild(b);
+    });
+  }
+
   /* Ranks in the order rows are usually laid, so the dropdowns start close to
      right and most of them need no touching. */
   var RANKORDER = ["A","K","Q","J","10","9","8","7","6","5","4"];
@@ -1677,14 +1750,37 @@ var reader = (function () {
       var cv = document.createElement("canvas");
       cv.width = Math.max(8, Math.round(gm.L)); cv.height = H;
       var g = cv.getContext("2d");
-      g.setTransform(gm.d.x, gm.n.x, gm.d.y, gm.n.y,
-                     -(gm.A.x*gm.d.x + gm.A.y*gm.d.y),
-                     -(gm.A.x*gm.n.x + gm.A.y*gm.n.y) + lin);
+      var sb = stripBasis(gm);
+      g.setTransform(sb.d.x, sb.n.x, sb.d.y, sb.n.y,
+                     -(sb.A.x*sb.d.x + sb.A.y*sb.d.y),
+                     -(sb.A.x*sb.n.x + sb.A.y*sb.n.y) + lin);
       g.drawImage(IMG, 0, 0);
       g.setTransform(1,0,0,1,0,0);
       sc.appendChild(cv);
 
-      var st = READ[i] || (READ[i] = { rank: RANKORDER[i] || "", nat:0, jok:0, two:0 });
+      var st = READ[i] || (READ[i] = { rank: RANKORDER[i] || "", marks: [] });
+      if (!st.marks) st.marks = [];
+      paintMarks(cv, st);
+      sc.onclick = (function (idx, canvas, state) {
+        return function (ev) {
+          var r = canvas.getBoundingClientRect();
+          var x = (ev.clientX - r.left) * (canvas.width / r.width);
+          var y = (ev.clientY - r.top) * (canvas.height / r.height);
+          /* Tapping an existing stamp lifts it. Anything else drops a new one -
+             so a miscount is undone by tapping the same card again, not by
+             recounting the row. */
+          var hit = -1, best = 34;
+          state.marks.forEach(function (m, k) {
+            var d = Math.hypot(m.x - x, m.y - y);
+            if (d < best) { best = d; hit = k; }
+          });
+          if (hit >= 0) state.marks.splice(hit, 1);
+          else state.marks.push({ x: x, y: y, kind: MODE });
+          CUR = idx;
+          draw();
+        };
+      })(i, cv, st);
+
       var line = document.createElement("div"); line.className = "rfline";
       var sel = document.createElement("select");
       var blank = document.createElement("option"); blank.value=""; blank.textContent="rank";
@@ -1696,16 +1792,20 @@ var reader = (function () {
       });
       sel.onchange = function(){ st.rank = this.value; check(); };
       line.appendChild(sel);
-      [["nat","Cards"],["jok","Jokers"],["two","2s"]].forEach(function(f){
-        var wrap = document.createElement("div");
-        var head = document.createElement("div"); head.className="rfhead"; head.textContent=f[1];
-        var inp = document.createElement("input");
-        inp.type="number"; inp.min="0"; inp.value=st[f[0]];
-        inp.style.cssText="width:100%;padding:8px;border:1px solid var(--stock-edge);border-radius:7px;text-align:center;background:#fff;color:var(--ink)";
-        inp.onchange = function(){ st[f[0]] = Math.max(0, parseInt(this.value,10)||0); check(); };
-        wrap.appendChild(head); wrap.appendChild(inp);
-        line.appendChild(wrap);
-      });
+
+      var t = tally(st);
+      var tal = document.createElement("div"); tal.className = "rftally";
+      tal.innerHTML = "<span><b>" + t.nat + "</b> cards</span>" +
+        (t.jok ? "<span class='w'><b>" + t.jok + "</b> joker" + (t.jok===1?"":"s") + "</span>" : "") +
+        (t.two ? "<span class='w'><b>" + t.two + "</b> two" + (t.two===1?"":"s") + "</span>" : "") +
+        "<span style='color:var(--ink-soft)'>" + (t.nat+t.jok+t.two) + " total</span>";
+      line.appendChild(tal);
+
+      var clr = document.createElement("button");
+      clr.className = "btn"; clr.textContent = "Clear";
+      clr.onclick = function(e){ e.stopPropagation(); st.marks = []; draw(); };
+      line.appendChild(clr);
+
       row.appendChild(sc); row.appendChild(line);
       row.onclick = function(e){ if (e.target === row || e.target === sc){ CUR = i; draw(); } };
       host.appendChild(row);
@@ -1722,12 +1822,12 @@ var reader = (function () {
       var st = READ[i]; if (!st || !st.rank) return;
       if (seen[st.rank]) msgs.push("two strips are both marked " + st.rank);
       seen[st.rank] = true;
-      var n = st.nat + st.jok + st.two, wild = st.jok + st.two;
+      var t = tally(st), n = t.nat + t.jok + t.two, wild = t.jok + t.two;
       if (!n) return;
       if (wild > S.rules.maxWildsPerBook)
         msgs.push(st.rank + "s hold " + wild + " wilds; no book takes more than " + S.rules.maxWildsPerBook);
-      else if (n >= S.rules.bookMinimum && wild >= st.nat)
-        msgs.push(st.rank + "s have " + wild + " wilds against " + st.nat + " naturals");
+      else if (n >= S.rules.bookMinimum && wild >= t.nat)
+        msgs.push(st.rank + "s have " + wild + " wilds against " + t.nat + " naturals");
       else if (n < S.rules.bookMinimum)
         msgs.push(st.rank + "s have only " + n + " card" + (n===1?"":"s"));
     });
@@ -1790,8 +1890,9 @@ var reader = (function () {
     BANDS.forEach(function(_, i){
       var st = READ[i];
       if (!st || !st.rank) return;
-      if (!(st.nat + st.jok + st.two)) return;
-      S.current[TEAM].books[st.rank] = { nat: st.nat, jok: st.jok, two: st.two };
+      var t = tally(st);
+      if (!(t.nat + t.jok + t.two)) return;
+      S.current[TEAM].books[st.rank] = { nat: t.nat, jok: t.jok, two: t.two };
       n++;
     });
     if (!n){ toast("Nothing to add yet"); return; }
@@ -1799,6 +1900,59 @@ var reader = (function () {
     renderAll();
     showPanel("round");
     toast(n + " row" + (n===1?"":"s") + " added to " + S.names[TEAM]);
+  }
+
+  /* A first pass can come from anywhere - read by eye, or produced by something
+     else entirely - and is then checked and corrected here rather than trusted.
+     Positions travel as a fraction along the strip so they survive any change of
+     resolution, band height or crop. */
+  function stripWidths(){
+    return Array.prototype.slice.call(document.querySelectorAll("#rfStrips canvas"))
+      .map(function(c,i){ return { n:i+1, width:c.width, height:c.height }; });
+  }
+
+  function dumpMarks(){
+    var w = stripWidths();
+    return JSON.stringify(BANDS.map(function(_, i){
+      var st = READ[i] || {}, wd = (w[i] && w[i].width) || 1;
+      return { n: i+1, rank: st.rank || "",
+               marks: (st.marks||[]).map(function(m){
+                 return { u: +(m.x/wd).toFixed(4), kind: m.kind };
+               }) };
+    }), null, 1);
+  }
+
+  function loadMarks(text){
+    var data;
+    try { data = JSON.parse(text); }
+    catch (e){ toast("That is not valid JSON"); return; }
+    if (!Array.isArray(data)){ toast("Expected a list of strips"); return; }
+    var w = stripWidths(), applied = 0, skipped = 0;
+    data.forEach(function(row){
+      var i = (row.n|0) - 1;
+      if (i < 0 || i >= BANDS.length){ skipped++; return; }
+      var wd = (w[i] && w[i].width) || 1, hd = (w[i] && w[i].height) || 180;
+      var st = READ[i] || (READ[i] = { rank:"", marks:[] });
+      if (row.rank) st.rank = String(row.rank);
+      st.marks = (row.marks||[]).map(function(m){
+        var x = (m.x !== undefined) ? +m.x : (+m.u || 0) * wd;
+        var kind = (m.kind === "jok" || m.kind === "two") ? m.kind : "nat";
+        return { x: Math.max(0, Math.min(wd, x)),
+                 y: (m.y !== undefined) ? +m.y : hd*0.42,
+                 kind: kind };
+      });
+      applied++;
+    });
+    draw();
+    toast("Loaded " + applied + " strip" + (applied===1?"":"s") +
+          (skipped ? ", " + skipped + " skipped" : "") + " — check them");
+  }
+
+  function copy(text, what){
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ toast(what + " copied"); },
+                                               function(){ toast("Could not copy"); });
+    } else { toast("Clipboard not available here"); }
   }
 
   function download(){
@@ -1827,6 +1981,7 @@ var reader = (function () {
 
   function init(){
     teamPicker();
+    modeBar();
     on("rfPick","click", function(){ $("rfFile").click(); });
     on("rfFile","change", function(){
       var f = this.files && this.files[0]; this.value = "";
@@ -1858,6 +2013,13 @@ var reader = (function () {
     on("rfFlip","change", function(){ FLIP = this.checked; draw(); });
     on("rfApply","click", apply);
     on("rfSave","click", download);
+    on("rfInfo","click", function(){ copy(JSON.stringify(stripWidths()), "Strip sizes"); });
+    on("rfLoad","click", function(){ loadMarks($("rfPaste").value); });
+    on("rfDump","click", function(){
+      var t = dumpMarks();
+      $("rfPaste").value = t;
+      copy(t, "Stamps");
+    });
   }
 
   return { init: init, refresh: function(){ teamPicker(); } };

@@ -8,7 +8,7 @@
  * Bump VERSION on every deploy. The old cache is dropped on activate, so a stale
  * shell can never outlive a release.
  */
-const VERSION = "9deck-2026-09-07e";
+const VERSION = "9deck-2026-09-07h";
 const SHELL = VERSION + "-shell";
 const RUNTIME = VERSION + "-runtime";
 
