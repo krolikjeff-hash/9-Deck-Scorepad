@@ -8,9 +8,15 @@
  * Bump VERSION on every deploy. The old cache is dropped on activate, so a stale
  * shell can never outlive a release.
  */
-const VERSION = "9deck-2026-09-11a";
+const VERSION = "9deck-2026-09-12a";
 const SHELL = VERSION + "-shell";
 const RUNTIME = VERSION + "-runtime";
+/* The card detector's model (12 MB) and its runtime are cached here, in a
+   cache that is NOT versioned: a deploy must not make every phone download
+   the model again. A retrained model gets a new file name, which is a new
+   cache entry; stale ones are dropped on activate. */
+const MODEL = "9deck-model";
+const MODEL_FILES = ["glyphs-v1.onnx"];
 
 const ASSETS = [
   "./",
@@ -40,7 +46,12 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== SHELL && k !== RUNTIME).map(k => caches.delete(k)));
+    await Promise.all(keys.filter(k => k !== SHELL && k !== RUNTIME && k !== MODEL).map(k => caches.delete(k)));
+    const model = await caches.open(MODEL);
+    for (const req of await model.keys()) {
+      const name = new URL(req.url).pathname.split("/").pop();
+      if (!MODEL_FILES.includes(name) && !req.url.includes("onnxruntime-web")) await model.delete(req);
+    }
     await self.clients.claim();
   })());
 });
@@ -56,6 +67,10 @@ function isFont(url) {
 }
 function isFirebaseLib(url) {
   return url.hostname === "www.gstatic.com" && url.pathname.includes("/firebasejs/");
+}
+function isDetector(url) {
+  return (url.origin === location.origin && MODEL_FILES.includes(url.pathname.split("/").pop()))
+      || (url.hostname === "cdn.jsdelivr.net" && url.pathname.includes("/onnxruntime-web@"));
 }
 
 self.addEventListener("fetch", event => {
@@ -77,6 +92,20 @@ self.addEventListener("fetch", event => {
       } catch (e) {
         return (await caches.match("./index.html")) || (await caches.match("./")) || Response.error();
       }
+    })());
+    return;
+  }
+
+  // The card detector's model and runtime: cache first, and keep it across
+  // versions - see MODEL above.
+  if (isDetector(url)) {
+    event.respondWith((async () => {
+      const cache = await caches.open(MODEL);
+      const hit = await cache.match(req);
+      if (hit) return hit;
+      const res = await fetch(req);
+      if (res && (res.ok || res.type === "opaque")) cache.put(req, res.clone());
+      return res;
     })());
     return;
   }

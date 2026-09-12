@@ -398,6 +398,10 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
       <h2>Read the strips</h2>
       <p class="note">Tap each card once as you go. The stamp covers what you have counted, so you can see what is left — the count is the number of stamps, never a number you hold in your head. Tap a stamp again to take it back.</p>
       <div class="btnrow" id="rfMode" style="margin-bottom:10px"></div>
+      <div class="btnrow" style="margin-bottom:10px">
+        <button class="btn go" id="rfDetect">Detect all rows</button>
+        <span class="note" id="rfDetectNote" style="margin:0"></span>
+      </div>
       <div id="rfStrips"></div>
       <ul class="warns" id="rfWarn"></ul>
       <div class="btnrow" style="margin-top:12px">
@@ -501,7 +505,7 @@ var store = (function () {
 
 var MARK_SVG = "<svg class=\"mark\" width=\"53\" height=\"84\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
 var MARK9_SVG = "<svg class=\"mark\" width=\"50\" height=\"79\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
-var APP_VERSION = "2026-09-11a";
+var APP_VERSION = "2026-09-12a";
 var KEY = "ninedecks.v1";
 var LKEY = "ninedecks.local.v1";
 
@@ -2206,6 +2210,203 @@ var reader = (function () {
     return parts.length ? "Missed: " + parts.join(", ") + "." : "";
   }
 
+  /* ------------------------------------------------------------------
+     Corner-glyph detector. A small YOLO model (yolov8n, 3M parameters)
+     fine-tuned on this deck's own corner indices - 13 classes: the eleven
+     ranks A K Q J 10 9 8 7 6 5 4, Joker, and 2. Trained on rounds 1-7 of
+     the ground-truth set (571 glyphs), scored on round 8 which it never
+     saw: 77 of 77 naturals, 12 of 12 wilds, every rank read correctly,
+     zero Jokers or 2s taken for naturals, and the only two extra boxes were
+     second hits on the same glyph, which the 50px minimum gap below
+     removes. The tap-to-seed matcher on the same rows, given a perfect
+     first tap for free, found 60 of 78. So this runs first; tapping stays
+     for whatever it misses, and every stamp it drops can be lifted the
+     same way as any other.
+
+     Runs in the browser through onnxruntime-web (loaded on first use from
+     the CDN, cached by the service worker along with the model) - nothing
+     leaves the phone, and it works offline once cached. Training data,
+     scripts and the notebook live beside the project's ground-truth
+     folders; see AUTOFILL_HANDOFF.md.
+
+     Preprocessing must match how the model was trained and exported:
+     640x640 input, letterboxed with 114-grey padding centred as
+     ultralytics does it, RGB in 0..1. A strip is run in 640px-wide tiles
+     overlapping by 160px (the training tiles), and hits from overlapping
+     tiles are merged. */
+  var DETECT_MODEL   = "./glyphs-v1.onnx";     // rename on retrain: the cache is keyed by URL
+  var DETECT_ORT     = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
+  var DETECT_CLASSES = ["A","K","Q","J","10","9","8","7","6","5","4","joker","two"];
+  var DETECT_CONF    = 0.5;     // round 8: 0.5 and 0.7 both gave every card; 0.5 keeps a
+                                // little margin for a worse photo
+  var DETECT_IOU     = 0.7;     // ultralytics' own NMS default
+  var DETECT_TILE = 640, DETECT_OVERLAP = 160, DETECT_PAD = 114;
+  var detectSession = null, detectLoading = null;
+
+  function loadScript(src){
+    return new Promise(function(res, rej){
+      var sc = document.createElement("script");
+      sc.src = src; sc.onload = res; sc.onerror = function(){ rej(new Error("could not load " + src)); };
+      document.head.appendChild(sc);
+    });
+  }
+
+  function detectorReady(note){
+    if (detectSession) return Promise.resolve(detectSession);
+    if (detectLoading) return detectLoading;
+    detectLoading = (window.ort ? Promise.resolve() : loadScript(DETECT_ORT + "ort.min.js"))
+      .then(function(){
+        ort.env.wasm.wasmPaths = DETECT_ORT;
+        ort.env.wasm.numThreads = 1;     // no cross-origin isolation on a static host
+        if (note) note("Loading the card reader (12 MB, first time only)…");
+        return ort.InferenceSession.create(DETECT_MODEL, { executionProviders: ["wasm"] });
+      })
+      .then(function(sess){ detectSession = sess; detectLoading = null; return sess; },
+            function(err){ detectLoading = null; throw err; });
+    return detectLoading;
+  }
+
+  /* One tile -> [{x, y, cls, conf}] in the tile's own pixels. */
+  function detectTile(sess, tile){
+    var w = tile.width, h = tile.height, S = DETECT_TILE;
+    var r = Math.min(S / w, S / h);
+    var nw = Math.round(w * r), nh = Math.round(h * r);
+    var left = Math.round((S - nw) / 2 - 0.1), top = Math.round((S - nh) / 2 - 0.1);
+    var cv = document.createElement("canvas"); cv.width = S; cv.height = S;
+    var g = cv.getContext("2d", { willReadFrequently: true });
+    g.fillStyle = "rgb(" + DETECT_PAD + "," + DETECT_PAD + "," + DETECT_PAD + ")";
+    g.fillRect(0, 0, S, S);
+    g.drawImage(tile, 0, 0, w, h, left, top, nw, nh);
+    var d = g.getImageData(0, 0, S, S).data;
+    var n = S * S, input = new Float32Array(3 * n);
+    for (var i = 0, p = 0; i < n; i++, p += 4){
+      input[i] = d[p] / 255; input[n + i] = d[p + 1] / 255; input[2 * n + i] = d[p + 2] / 255;
+    }
+    var feeds = {};
+    feeds[sess.inputNames[0]] = new ort.Tensor("float32", input, [1, 3, S, S]);
+    return sess.run(feeds).then(function(out){
+      var t = out[sess.outputNames[0]], data = t.data;
+      var rows = t.dims[1], anchors = t.dims[2], ncls = rows - 4;
+      var boxes = [];
+      for (var a = 0; a < anchors; a++){
+        var best = 0, bc = -1;
+        for (var c = 0; c < ncls; c++){
+          var sc = data[(4 + c) * anchors + a];
+          if (sc > best){ best = sc; bc = c; }
+        }
+        if (best < DETECT_CONF) continue;
+        boxes.push({ cx: data[a], cy: data[anchors + a], w: data[2 * anchors + a], h: data[3 * anchors + a],
+                     cls: bc, conf: best });
+      }
+      boxes.sort(function(p, q){ return q.conf - p.conf; });
+      var kept = [];
+      boxes.forEach(function(b){
+        for (var k = 0; k < kept.length; k++){
+          var o = kept[k];
+          var ix = Math.max(0, Math.min(b.cx + b.w/2, o.cx + o.w/2) - Math.max(b.cx - b.w/2, o.cx - o.w/2));
+          var iy = Math.max(0, Math.min(b.cy + b.h/2, o.cy + o.h/2) - Math.max(b.cy - b.h/2, o.cy - o.h/2));
+          var inter = ix * iy, uni = b.w * b.h + o.w * o.h - inter;
+          if (uni > 0 && inter / uni > DETECT_IOU) return;
+        }
+        kept.push(b);
+      });
+      return kept.map(function(b){
+        return { x: (b.cx - left) / r, y: (b.cy - top) / r, cls: b.cls, conf: b.conf };
+      });
+    });
+  }
+
+  /* A whole strip canvas (WITHOUT stamps painted on it) -> detections in
+     strip pixels, merged across tiles. */
+  function detectStrip(sess, canvas){
+    var w = canvas.width, h = canvas.height, tiles = [], x0 = 0;
+    while (true){
+      var x1 = Math.min(w, x0 + DETECT_TILE);
+      tiles.push([x0, x1]);
+      if (x1 >= w) break;
+      x0 += DETECT_TILE - DETECT_OVERLAP;
+    }
+    var all = [];
+    return tiles.reduce(function(chain, t){
+      return chain.then(function(){
+        var tc = document.createElement("canvas"); tc.width = t[1] - t[0]; tc.height = h;
+        tc.getContext("2d").drawImage(canvas, t[0], 0, tc.width, h, 0, 0, tc.width, h);
+        return detectTile(sess, tc).then(function(hits){
+          hits.forEach(function(d){ all.push({ x: d.x + t[0], y: d.y, cls: d.cls, conf: d.conf }); });
+        });
+      });
+    }, Promise.resolve()).then(function(){
+      all.sort(function(p, q){ return q.conf - p.conf; });
+      var kept = [];
+      all.forEach(function(d){
+        if (kept.every(function(k){ return Math.abs(k.x - d.x) > 30 || Math.abs(k.y - d.y) > 30; })) kept.push(d);
+      });
+      kept.sort(function(p, q){ return p.x - q.x; });
+      return kept;
+    });
+  }
+  // For checking the in-browser decoder against the training notebook's
+  // numbers on the same strips - not used by the app itself.
+  window.__glyphDetect = function(canvas){ return detectorReady().then(function(s){ return detectStrip(s, canvas); }); };
+
+  /* Drop the detector's hits onto one row as stamps. Existing stamps are
+     never moved or replaced; a hit within the minimum gap of one is skipped.
+     A natural the detector read as a different rank from the row's is still
+     placed - the detector may be right and the row's rank wrong - but ringed
+     as uncertain, and the row's note says what was read. */
+  function detectRow(sess, idx){
+    var band = BANDS[idx]; if (!band) return Promise.resolve({ added: 0 });
+    var st = READ[idx] || (READ[idx] = { rank: RANKORDER[idx] || "", marks: [] });
+    if (!st.marks) st.marks = [];
+    var clean = drawStripImage(geom(band), bh(), lead());
+    return detectStrip(sess, clean).then(function(hits){
+      var added = 0, other = {};
+      hits.forEach(function(d){
+        var name = DETECT_CLASSES[d.cls];
+        var kind = name === "joker" ? "jok" : name === "two" ? "two" : "nat";
+        if (st.marks.some(function(m){ return Math.abs(m.x - d.x) < AUTOFILL_MIN_GAP; })) return;
+        var mark = { x: d.x, y: d.y, kind: kind, uncertain: false, det: name };
+        if (kind === "nat" && st.rank && name !== st.rank){
+          mark.uncertain = true;
+          other[name] = (other[name] || 0) + 1;
+        }
+        st.marks.push(mark);
+        added++;
+      });
+      var names = Object.keys(other);
+      st.lastDiag = names.length
+        ? "Detector read " + names.map(function(k){ return other[k] + " as " + k; }).join(", ") +
+          (st.rank ? " on a row set to " + st.rank : "") + " - ringed; check the rank."
+        : null;
+      return { added: added };
+    });
+  }
+
+  function detectAll(){
+    var note = $("rfDetectNote"), btn = $("rfDetect");
+    if (!BANDS.length){ toast("Place the strips first"); return; }
+    if (!canEdit(TEAM, "books")){ toast("That team's books are locked"); return; }
+    btn.disabled = true;
+    var say = function(t){ if (note) note.textContent = t; };
+    detectorReady(say).then(function(sess){
+      var total = 0, i = 0;
+      function next(){
+        if (i >= BANDS.length){
+          say(""); btn.disabled = false; draw();
+          toast(total ? ("Stamped " + total + " cards - check the ringed ones, tap to fix") : "Found nothing to stamp");
+          return;
+        }
+        say("Reading row " + (i + 1) + " of " + BANDS.length + "…");
+        return detectRow(sess, i).then(function(r){ total += r.added; i++; return next(); });
+      }
+      return next();
+    }).catch(function(err){
+      btn.disabled = false; say("");
+      toast("Card reader unavailable - " + (navigator.onLine ? "try again" : "needs a connection the first time"));
+      if (window.console) console.warn(err);
+    });
+  }
+
   /* Stamping borrowed from cell counting under a microscope: cover each item as
      it is counted, so the eye can see what is still unassessed and the total is
      the number of marks rather than a running tally in the head. */
@@ -2373,6 +2574,20 @@ var reader = (function () {
       clr.className = "btn"; clr.textContent = "Clear";
       clr.onclick = function(e){ e.stopPropagation(); st.marks = []; st.lastDiag = null; delete TEMPLATES[i]; delete TEMPLATE_Y[i]; draw(); };
       line.appendChild(clr);
+
+      var det = document.createElement("button");
+      det.className = "btn"; det.textContent = "Detect";
+      det.title = "Read this row with the card detector";
+      det.onclick = (function(idx){
+        return function(e){
+          e.stopPropagation();
+          if (!canEdit(TEAM, "books")){ toast("That team's books are locked"); return; }
+          detectorReady(function(t){ toast(t); }).then(function(sess){ return detectRow(sess, idx); })
+            .then(function(r){ draw(); toast(r.added ? ("Stamped " + r.added + " - check the ringed ones") : "Nothing new found"); })
+            .catch(function(err){ toast("Card reader unavailable - " + (navigator.onLine ? "try again" : "needs a connection the first time")); if (window.console) console.warn(err); });
+        };
+      })(i);
+      line.appendChild(det);
 
       if (TEMPLATES[i]){
         var find = document.createElement("button");
@@ -2624,6 +2839,7 @@ var reader = (function () {
     ["rfBh","rfLead","rfSh"].forEach(function(id){ on(id,"change", draw); });
     on("rfFlip","change", function(){ FLIP = this.checked; draw(); });
     on("rfApply","click", apply);
+    on("rfDetect","click", detectAll);
     on("rfSave","click", download);
     on("rfBlank","click", downloadBlank);
     on("rfInfo","click", function(){ copy(JSON.stringify(stripWidths()), "Strip sizes"); });
