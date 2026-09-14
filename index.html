@@ -252,9 +252,14 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 .whoami button{border:1px solid var(--stock-edge);background:var(--stock-sunk);border-radius:5px;
   padding:9px 6px;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .whoami button[aria-pressed="true"]{background:var(--brass);color:#FFF9E8;border-color:var(--brass);font-weight:700}
-#rfStage{position:relative;background:#0b2318;border-radius:10px;overflow:hidden;
-  border:1px solid var(--baize-line);touch-action:none}
-#rfStage canvas{display:block;width:100%;height:auto}
+#rfFrame,#rfView{position:relative;background:#0b2318;border-radius:10px;overflow:hidden;
+  border:1px solid var(--baize-line);margin-top:10px}
+.rfcanvas{display:block;width:100%;height:320px;touch-action:none;cursor:crosshair}
+#rfPad{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+#rfPad .btn{padding:15px 6px;font-size:15px;text-align:center}
+#rfPad .btn.kind{grid-column:span 2}
+#rfPad .btn.act{grid-column:span 3}
+#rfRankRow .btn{padding:10px 12px;min-width:46px;text-align:center}
 .nav{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
 .nav .btn{padding:10px 14px}
 .navspace{flex:1 1 auto}
@@ -360,13 +365,13 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
   <!-- PHOTO -->
   <section class="panel" id="panel-photo" role="tabpanel" aria-labelledby="tab-photo">
     <div class="sheet">
-      <h2>Read a row from a photo</h2>
-      <p class="note">Photograph one team's books from above. Place a band on each row, then read the strips and enter what you count. Two passes: naturals first, wilds second.</p>
+      <h2>Read a hand from a photo</h2>
+      <p class="note">One photo of one team's books, taken from above with the whole hand in frame. The reader finds every card's corner index; you check it, fix anything it got wrong, and add the counts to the round.</p>
       <div class="btnrow">
         <input type="file" id="rfFile" accept="image/*" capture="environment" hidden>
-        <button class="btn" id="rfPick">Choose photo</button>
-        <button class="btn" id="rfRot" disabled>Rows run the other way</button>
-        <button class="btn" id="rfRedo" disabled>Find rows again</button>
+        <button class="btn go" id="rfPick">Take photo</button>
+        <input type="file" id="rfFileAny" accept="image/*" hidden>
+        <button class="btn" id="rfPickAny">Choose a photo</button>
       </div>
       <div class="btnrow" style="margin-top:10px">
         <span class="rfteam">For</span>
@@ -374,51 +379,33 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
       </div>
     </div>
 
-    <div class="sheet" id="rfStageSheet" hidden>
-      <h2 class="sheethead">Check each row</h2>
-      <p class="note">Tap or drag anywhere to place the highlighted band. Drag the circle to tilt it. Rows already placed stay on screen faintly.</p>
-      <div id="rfStagewrap"></div>
-      <div class="nav" id="rfNav" hidden>
-        <button class="btn" id="rfPrev">‹ Back</button>
-        <div class="counter"><b id="rfCnum">Row 1</b> <span id="rfCtot">1 placed</span></div>
-        <button class="btn go" id="rfNext">Add next ›</button>
-        <span class="navspace"></span>
-        <button class="btn" id="rfIns">Insert after</button>
-        <button class="btn warn" id="rfDel">Remove</button>
+    <div class="sheet" id="rfFrameSheet" hidden>
+      <h2 class="sheethead">Turn it upright, then trim</h2>
+      <p class="note">Turn the photo until the rank letters in the card corners are the right way up. This one matters: the reader cannot see a sideways glyph at all, and a photo left on its side finds nothing rather than finding it badly. Then drag the two yellow bars in to cut away everything above and below the cards.</p>
+      <div class="btnrow">
+        <button class="btn" id="rfTurnL">&#8634; Turn left</button>
+        <button class="btn" id="rfTurnR">&#8635; Turn right</button>
+        <span class="rfteam" id="rfTurnNote"></span>
       </div>
+      <div id="rfFrame"></div>
       <div class="btnrow" style="margin-top:10px">
-        <label class="f">Band height <input type="number" id="rfBh" value="180" min="60" max="500" step="10"></label>
-        <label class="f">Start above <input type="number" id="rfLead" value="20" min="0" max="150" step="5"></label>
-        <label class="f">Strip height <input type="number" id="rfSh" value="150" min="60" max="400" step="10"></label>
-        <label class="f"><input type="checkbox" id="rfFlip"> Flip strips</label>
+        <button class="btn go" id="rfFrameOk">The letters read upright &mdash; find the cards</button>
+        <span class="rfteam" id="rfDetectNote"></span>
       </div>
     </div>
 
-    <div class="sheet" id="rfReadSheet" hidden>
-      <h2>Read the strips</h2>
-      <p class="note">Tap each card once as you go. The stamp covers what you have counted, so you can see what is left — the count is the number of stamps, never a number you hold in your head. Tap a stamp again to take it back.</p>
-      <div class="btnrow" id="rfMode" style="margin-bottom:10px"></div>
-      <div class="btnrow" style="margin-bottom:10px">
-        <button class="btn go" id="rfDetect">Detect all rows</button>
-        <span class="note" id="rfDetectNote" style="margin:0"></span>
-      </div>
-      <div id="rfStrips"></div>
+    <div class="sheet" id="rfReviewSheet" hidden>
+      <h2 class="sheethead">Check the cards</h2>
+      <p class="note">Pinch to zoom, drag to move the photo. The crosshair stays still in the middle &mdash; line it up on a card's corner index and use the buttons below. <b>Take out</b> lifts whatever the crosshair is sitting on.</p>
+      <div id="rfView"></div>
+      <div class="btnrow" id="rfPad" style="margin-top:10px"></div>
+      <div class="btnrow" id="rfRankRow" hidden style="margin-top:8px"></div>
+      <div id="rfBooks"></div>
       <ul class="warns" id="rfWarn"></ul>
       <div class="btnrow" style="margin-top:12px">
         <button class="btn go" id="rfApply">Add these to the round</button>
-        <button class="btn" id="rfSave">Download with stamps</button>
-        <button class="btn" id="rfBlank">Download blank</button>
-        <button class="btn" id="rfInfo">Copy strip sizes</button>
+        <button class="btn" id="rfBack">Turn or trim again</button>
       </div>
-      <details class="rfio">
-        <summary>First pass from elsewhere</summary>
-        <p class="note">Paste a set of stamps to start from, then check and correct them here. Positions are <code>u</code>, a fraction along the strip from 0 to 1, or <code>x</code> in strip pixels. Kinds are <code>nat</code>, <code>jok</code>, <code>two</code>.</p>
-        <textarea id="rfPaste" rows="5" spellcheck="false" placeholder='[{"n":1,"rank":"A","marks":[{"u":0.12,"kind":"nat"},{"u":0.31,"kind":"two"}]}]'></textarea>
-        <div class="btnrow" style="margin-top:8px">
-          <button class="btn go" id="rfLoad">Apply these stamps</button>
-          <button class="btn" id="rfDump">Copy what is here now</button>
-        </div>
-      </details>
     </div>
   </section>
 
@@ -505,7 +492,7 @@ var store = (function () {
 
 var MARK_SVG = "<svg class=\"mark\" width=\"53\" height=\"84\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
 var MARK9_SVG = "<svg class=\"mark\" width=\"50\" height=\"79\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
-var APP_VERSION = "2026-09-12a";
+var APP_VERSION = "2026-09-13a";
 var KEY = "ninedecks.v1";
 var LKEY = "ninedecks.local.v1";
 
@@ -1507,6 +1494,9 @@ function showPanel(name) {
   });
   document.querySelector(".tally").style.display = (name === "round") ? "" : "none";
   window.scrollTo(0, 0);
+  /* A canvas inside a panel that is display:none measures zero, so the reader
+     cannot lay its stages out until its panel is actually on screen. */
+  if (name === "photo" && typeof reader !== "undefined" && reader.shown) reader.shown();
 }
 
 function renderAll() { renderRound(); renderHistory(); renderSetup(); renderWhoami();
@@ -1525,726 +1515,319 @@ function renderAll() { renderRound(); renderHistory(); renderSetup(); renderWhoa
    Kept in its own closure so nothing here can collide with the scorepad.
    ============================================================ */
 var reader = (function () {
-  var IMG = null, AXIS = 1, FLIP = false;
-  var BANDS = [], SUGGEST = [], CUR = 0;
+
+  /* Reading a hand from one photograph.
+
+     Part 2 read the photo through hand-placed strips: the person laid a band on
+     every row, the app rectified each band into a horizontal strip, and a
+     detector trained on strips read those. That is gone. A detector trained on
+     whole photos finds every corner index on the raw picture, so the strips -
+     which were only ever scaffolding for the matcher that came before it - buy
+     nothing and cost the person eleven placements per hand.
+
+     What is left is: turn the photo upright, trim it, detect, correct what is
+     wrong, add the counts to the round.
+
+     ORIENTATION IS LOAD-BEARING. The detector was trained on upright glyphs with
+     about six degrees of jitter. On a photo lying on its side it does not
+     degrade, it goes blind: measured on round 8, the whole-photo model found 1
+     card out of 77 on sideways input against 77 out of 77 upright. So the frame
+     step makes the person confirm it, and a detection run that comes back nearly
+     empty says so rather than shrugging. */
+
+  /* ---------------- the photo, and the frame cut from it ---------------- */
+
+  var IMG = null;                   // the photo as the browser decoded it (EXIF applied)
+  var ROT = 0;                      // clockwise degrees applied for viewing: 0|90|180|270
+  var ROTCV = null;                 // the photo rotated, before cropping
+  var CROP = { top: 0, bottom: 0 }; // in rotated-photo pixels
   var TEAM = "A";
-  var READ = {};                 // strip index -> { rank, nat, jok, two }
-  var TEMPLATES = {};            // strip index -> captured glyph template, for
-                                  // auto-classifying natural vs wild on tap
-  var TEMPLATE_Y = {};           // strip index -> the y the template was taken
-                                  // at, so auto-fill scans the same row line
-  var VIEW = { canvas: null, ctx: null, scale: 1 };
-  var MAXANG = 10;
 
-  function bh(){ return parseInt($("rfBh").value,10) || 180; }
-  function lead(){ return parseInt($("rfLead").value,10) || 0; }
+  /* Every card the reader believes is on the table, in CROPPED frame pixels:
+     { x, y, cls, conf, manual }. cls indexes DETECT_CLASSES. */
+  var CARDS = [];
+  var UNDO = [];
+  var DETECTED = false;
 
-  /* A band crosses the whole image. pos is its midpoint; ang tilts it about
-     that midpoint so both ends swing evenly. */
-  function geom(band){
-    var W = IMG.width, H = IMG.height;
-    var t = Math.tan(band.ang * Math.PI / 180), A, G;
-    if (AXIS === 0){ A = {x:0, y:band.pos - t*W/2}; G = {x:W, y:band.pos + t*W/2}; }
-    else           { A = {x:band.pos - t*H/2, y:0}; G = {x:band.pos + t*H/2, y:H}; }
-    var vx = G.x-A.x, vy = G.y-A.y, L = Math.hypot(vx,vy) || 1;
-    var d = { x:vx/L, y:vy/L };
-    var n = { x:-d.y, y:d.x };
-    return { A:A, G:G, d:d, n:n, L:L };
-  }
-  /* The strip's own axes. This must be a rotation, never a reflection: an
-     extraction matrix with a negative determinant mirrors the card faces, so
-     every index comes out as its mirror image and the strip is far harder to
-     read. Flipping is therefore a half turn - negate both axes and start from
-     the other end - never a single negated axis. */
-  function stripBasis(gm){
-    var d = gm.d, A = gm.A;
-    if (AXIS !== 0){ d = { x:-d.x, y:-d.y }; A = gm.G; }   // read a column upward
-    if (FLIP){ d = { x:-d.x, y:-d.y }; A = (A === gm.A) ? gm.G : gm.A; }
-    return { d:d, n:{ x:-d.y, y:d.x }, A:A };
-  }
+  function rotW(){ return ROTCV ? ROTCV.width : 0; }
+  function rotH(){ return ROTCV ? ROTCV.height : 0; }
+  function workTop(){ return CROP.top; }
+  function workBot(){ return rotH() - CROP.bottom; }
+  function frameW(){ return rotW(); }
+  function frameH(){ return Math.max(1, workBot() - workTop()); }
+  function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
 
-  function toStrip(g, p){
-    var sb = stripBasis(g);
-    var wx = p.x-sb.A.x, wy = p.y-sb.A.y;
-    return { u: wx*sb.d.x + wy*sb.d.y, v: wx*sb.n.x + wy*sb.n.y + lead() };
-  }
-
-  /* Draws one strip's plain card image - no stamps - onto a fresh canvas.
-     Shared by the live display (which then paints stamps on top of the same
-     canvas) and the blank-download feature, which needs the image WITHOUT
-     stamps and previously had no way to get it once a strip had already been
-     tapped. */
-  function drawStripImage(gm, H, lin){
+  function buildRotated(){
+    if (!IMG) return;
+    var W = IMG.width, H = IMG.height, quarter = (ROT === 90 || ROT === 270);
     var cv = document.createElement("canvas");
-    cv.width = Math.max(8, Math.round(gm.L)); cv.height = H;
-    var g = cv.getContext("2d");
-    var sb = stripBasis(gm);
-    g.setTransform(sb.d.x, sb.n.x, sb.d.y, sb.n.y,
-                   -(sb.A.x*sb.d.x + sb.A.y*sb.d.y),
-                   -(sb.A.x*sb.n.x + sb.A.y*sb.n.y) + lin);
-    g.drawImage(IMG, 0, 0);
-    g.setTransform(1,0,0,1,0,0);
+    cv.width  = quarter ? H : W;
+    cv.height = quarter ? W : H;
+    var c = cv.getContext("2d");
+    if (ROT === 90){ c.translate(cv.width, 0); c.rotate(Math.PI / 2); }
+    else if (ROT === 180){ c.translate(cv.width, cv.height); c.rotate(Math.PI); }
+    else if (ROT === 270){ c.translate(0, cv.height); c.rotate(-Math.PI / 2); }
+    c.drawImage(IMG, 0, 0);
+    ROTCV = cv;
+  }
+
+  /* The frame that is actually read and reviewed: rotated, then cropped. Cut
+     fresh rather than cached, because the crop can move between runs. */
+  function frameCanvas(){
+    var cv = document.createElement("canvas");
+    cv.width = frameW(); cv.height = frameH();
+    cv.getContext("2d").drawImage(ROTCV, 0, workTop(), frameW(), frameH(),
+                                  0, 0, frameW(), frameH());
     return cv;
   }
 
-  function analyse(bitmap, axis){
-    var s = Math.min(1, 1000 / Math.max(bitmap.width, bitmap.height));
-    var w = Math.max(1, Math.round(bitmap.width*s)), h = Math.max(1, Math.round(bitmap.height*s));
-    var c = document.createElement("canvas"); c.width = w; c.height = h;
-    var x = c.getContext("2d", { willReadFrequently:true });
-    x.drawImage(bitmap, 0, 0, w, h);
-    var d = x.getImageData(0,0,w,h).data;
-    var gray = new Uint8Array(w*h), hist = new Uint32Array(256);
-    for (var i=0,j=0;i<d.length;i+=4,j++){
-      var v = (d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114)|0; gray[j]=v; hist[v]++;
-    }
-    var total=w*h, sum=0, t;
-    for (t=0;t<256;t++) sum += t*hist[t];
-    var sumB=0, wB=0, best=0, thr=128;
-    for (t=0;t<256;t++){
-      wB += hist[t]; if (!wB) continue;
-      var wF = total-wB; if (!wF) break;
-      sumB += t*hist[t];
-      var mB=sumB/wB, mF=(sum-sumB)/wF, bet=wB*wF*(mB-mF)*(mB-mF);
-      if (bet>best){ best=bet; thr=t; }
-    }
-    var n = axis===0 ? h : w, across = axis===0 ? w : h;
-    var prof = new Float32Array(n);
-    for (var a=0;a<n;a++){
-      var cnt=0;
-      for (var b=0;b<across;b++){
-        var idx = axis===0 ? a*w+b : b*w+a;
-        if (gray[idx] > thr) cnt++;
-      }
-      prof[a] = cnt/across;
-    }
-    return { prof: prof, scale: s };
-  }
-  function smooth(arr,k){
-    var out = new Float32Array(arr.length), half=k>>1;
-    for (var i=0;i<arr.length;i++){
-      var s=0,n=0;
-      for (var j=Math.max(0,i-half);j<=Math.min(arr.length-1,i+half);j++){ s+=arr[j]; n++; }
-      out[i]=s/n;
-    }
-    return out;
-  }
-  /* Rows show a strong table-to-card step at their leading edge. These are
-     suggestions to be corrected, never an answer. */
-  function findEdges(prof,k){
-    var p = smooth(prof,25), d = new Float32Array(p.length-1), i;
-    for (i=0;i<d.length;i++) d[i]=p[i+1]-p[i];
-    d = smooth(d,11);
-    var order=[]; for (i=0;i<d.length;i++) order.push(i);
-    order.sort(function(a,b){ return d[b]-d[a]; });
-    var sep = Math.max(30, Math.floor(p.length/(k*2.2))), picks=[];
-    for (var q=0;q<order.length && picks.length<k;q++){
-      var idx=order[q]; if (d[idx]<=0) break;
-      var ok=true;
-      for (var m=0;m<picks.length;m++) if (Math.abs(idx-picks[m])<sep){ ok=false; break; }
-      if (ok) picks.push(idx);
-    }
-    picks.sort(function(a,b){ return a-b; });
-    return picks;
-  }
+  /* ---------------- a pan/zoom stage, shared by both steps ---------------- */
 
-  function detect(){
-    if (!IMG) return;
-    var r = analyse(IMG, AXIS);
-    var cand = findEdges(r.prof, 16).map(function(v){ return Math.round(v/r.scale); });
-    var start = cand.length ? cand[0] : Math.round((AXIS===0?IMG.height:IMG.width)/4);
-    BANDS = [{ pos:start, ang:0 }];
-    SUGGEST = cand.slice(1);
-    CUR = 0; READ = {}; TEMPLATES = {}; TEMPLATE_Y = {};
-    draw();
-  }
+  /* One implementation for the trim step and the review step. Both need the
+     same thing on a phone: pinch to zoom, one finger to pan, and no browser
+     scrolling stealing the gesture (hence touch-action:none in the CSS). */
+  function Stage(host, opts){
+    var self = this;
+    this.opts = opts || {};
+    this.view = { ox: 0, oy: 0, z: 1 };
+    this.pointers = {};
+    this.pinch = null;
+    this.drag = null;
+    host.innerHTML = "";
+    var cv = document.createElement("canvas");
+    cv.className = "rfcanvas";
+    host.appendChild(cv);
+    this.host = host;
+    this.canvas = cv;
+    this.ctx = cv.getContext("2d");
+    this.dpr = window.devicePixelRatio || 1;
 
-  function typicalGap(){
-    if (BANDS.length < 2) return Math.round((AXIS===0?IMG.height:IMG.width)/12);
-    var g=[];
-    for (var i=1;i<BANDS.length;i++) g.push(Math.abs(BANDS[i].pos-BANDS[i-1].pos));
-    g.sort(function(a,b){ return a-b; });
-    return g[g.length>>1] || 200;
-  }
-  function advance(){
-    if (CUR < BANDS.length-1){ CUR++; draw(); return; }
-    var here = BANDS[CUR].pos, gap = typicalGap(), next = null;
-    while (SUGGEST.length){
-      var c = SUGGEST.shift();
-      if (c > here + gap*0.45){ next = c; break; }
-    }
-    if (next === null) next = here + gap;
-    var lim = (AXIS===0?IMG.height:IMG.width)-1;
-    BANDS.push({ pos: Math.max(0, Math.min(lim, Math.round(next))), ang: BANDS[CUR].ang });
-    CUR = BANDS.length-1;
-    draw();
-  }
-
-  function drawStage(){
-    var wrap = $("rfStagewrap");
-    if (!VIEW.canvas){
-      wrap.innerHTML = "";
-      var st = document.createElement("div"); st.id = "rfStage";
-      var cv = document.createElement("canvas");
-      st.appendChild(cv); wrap.appendChild(st);
-      VIEW.canvas = cv; VIEW.ctx = cv.getContext("2d");
-      pointer(cv);
-    }
-    var s = Math.min(1, 820/IMG.width);
-    VIEW.scale = s;
-    var cv = VIEW.canvas;
-    cv.width = Math.round(IMG.width*s); cv.height = Math.round(IMG.height*s);
-    var g = VIEW.ctx, H = bh(), lin = lead();
-    g.drawImage(IMG, 0, 0, cv.width, cv.height);
-    BANDS.forEach(function(band,i){
-      var active = (i === CUR), gm = geom(band);
-      var sb = stripBasis(gm);
-      function P(u,v){
-        return { x:(sb.A.x + sb.d.x*u + sb.n.x*(v-lin))*s,
-                 y:(sb.A.y + sb.d.y*u + sb.n.y*(v-lin))*s };
+    cv.addEventListener("pointerdown", function (ev){
+      cv.setPointerCapture(ev.pointerId);
+      self.pointers[ev.pointerId] = self.local(ev);
+      var ids = Object.keys(self.pointers);
+      if (ids.length === 2){
+        var a = self.pointers[ids[0]], b = self.pointers[ids[1]];
+        self.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y),
+                       mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, z: self.view.z,
+                       ox: self.view.ox, oy: self.view.oy };
+        self.drag = null;
+      } else if (ids.length === 1){
+        var p = self.local(ev);
+        self.drag = { px: p.x, py: p.y, ox: self.view.ox, oy: self.view.oy, moved: 0 };
+        if (self.opts.onDown) self.opts.onDown(self.toImage(p.x, p.y), p);
       }
-      var p0=P(0,0), p1=P(gm.L,0), p2=P(gm.L,H), p3=P(0,H);
-      g.beginPath(); g.moveTo(p0.x,p0.y); g.lineTo(p1.x,p1.y);
-      g.lineTo(p2.x,p2.y); g.lineTo(p3.x,p3.y); g.closePath();
-      g.fillStyle = active ? "rgba(168,129,31,.32)" : "rgba(120,200,150,.10)";
-      g.fill();
-      g.strokeStyle = active ? "#F0E4C2" : "rgba(143,216,172,.55)";
-      g.lineWidth = active ? 3 : 1.5;
-      g.beginPath(); g.moveTo(p0.x,p0.y); g.lineTo(p1.x,p1.y); g.stroke();
-      if (active){
-        var gp = { x:gm.G.x*s, y:gm.G.y*s };
-        g.beginPath(); g.arc(gp.x, gp.y, 14, 0, Math.PI*2);
-        g.fillStyle = "#F0E4C2"; g.fill();
-        g.strokeStyle = "#0E3122"; g.lineWidth = 3; g.stroke();
-      }
-      var lab = P(gm.L*0.06, H*0.55);
-      g.fillStyle = active ? "#F6F1E4" : "rgba(246,241,228,.55)";
-      g.font = (active ? "bold " : "") + "15px sans-serif";
-      g.fillText(String(i+1) + (band.ang ? "  " + band.ang.toFixed(1) + "\u00b0" : ""), lab.x, lab.y);
     });
-    $("rfNav").hidden = false;
-    $("rfCnum").textContent = "Row " + (CUR+1);
-    $("rfCtot").textContent = BANDS.length + " placed";
-    $("rfPrev").disabled = CUR <= 0;
-    $("rfDel").disabled = BANDS.length <= 1;
-  }
-
-  var MODE = "nat";
-  var MARKS = [["nat","Card","#1E7A46"],["jok","Joker","#A8172B"],["two","2","#1D4ED8"]];
-
-  function tally(st){
-    var t = { nat:0, jok:0, two:0 };
-    (st.marks||[]).forEach(function(m){ t[m.kind]++; });
-    return t;
-  }
-
-  /* Auto-classifying a tap as the confirmed rank or a wild.
-
-     A tapped card's top-left index is not the only glyph printed on it - the
-     same card repeats its rank, upside down, in the bottom-right corner. A
-     detector that is allowed to look at the whole card can pick up that second
-     copy, and for one rank pair specifically that is a silent wrong answer
-     rather than a failed read: a 6 rotated 180 degrees is a 9, and a 9 is a 6.
-     Every other rank just looks like nothing when inverted and fails safely,
-     which is why this one pair kept turning up as an unexplained mix-up.
-
-     The fix is architectural, not a rotation check: never look anywhere but a
-     small fixed window centred on the tap itself. A card is about 63mm wide
-     and an index glyph a few mm - a crop sized to one glyph is, by
-     construction, far too small to ever reach that same card's other corner. */
-  /* Was 60 - sized for a single-character rank. Two real ground-truth tests
-     (an Aces row and a Tens row, marked and checked with match_test.py) found
-     this was too narrow generally, not just for "10": a Tens card was
-     splitting into two or three separate detections because its two-
-     character glyph did not fit the window, but the same widening also
-     improved the Aces row, where nothing should have needed extra width. A
-     sweep of 60/75/90/100 against both photos found 90 clearly best on both;
-     100 started losing real cards on the Tens row. One width, not a
-     per-rank special case. */
-  var GLYPH_W = 90, GLYPH_H = 78;
-  var BLUR_SIGMA = 2.0;   // see glyphGray - raised from 1.0 after a live round
-                          // exposed thin-stroke digit ranks (5,6,7,8 measured
-                          // at 0.15-0.28 ink density vs 0.28-0.48 for every
-                          // other rank). Across 17 rows total, 2.0 raised
-                          // overall recall 82->89% for a 1-point precision
-                          // cost; going further cost precision faster than
-                          // the next point of recall was worth.
-  var Y_SEARCH   = 70;    // see findRowMatches
-
-  /* Separable Gaussian blur on a grayscale Float32Array. Sigma 1.0 gives a
-     7-tap kernel, matching what OpenCV uses for the same sigma in the Python
-     port, so the two stay comparable. */
-  function gaussianBlur(data, w, h, sigma){
-    var r = Math.ceil(3*sigma), k = [], sum = 0;
-    for (var i=-r; i<=r; i++){ var v = Math.exp(-(i*i)/(2*sigma*sigma)); k.push(v); sum += v; }
-    for (i=0; i<k.length; i++) k[i] /= sum;
-    var tmp = new Float32Array(w*h), out = new Float32Array(w*h);
-    for (var y=0; y<h; y++) for (var x=0; x<w; x++){
-      var acc = 0;
-      for (i=-r; i<=r; i++){
-        var xx = Math.min(w-1, Math.max(0, x+i));
-        acc += data[y*w+xx] * k[i+r];
-      }
-      tmp[y*w+x] = acc;
-    }
-    for (y=0; y<h; y++) for (x=0; x<w; x++){
-      acc = 0;
-      for (i=-r; i<=r; i++){
-        var yy = Math.min(h-1, Math.max(0, y+i));
-        acc += tmp[yy*w+x] * k[i+r];
-      }
-      out[y*w+x] = acc;
-    }
-    return out;
-  }
-
-  /* What counts as ink: darker than this crop's own paper (its 75th
-     percentile grey) by DARK_BELOW_PAPER - not below a fixed 140. Across all
-     39 ground-truthed rows, 26 of 73 misses died at the centred-ink gate, and
-     in the faint rows (R8 row 9, the "lighting gradient" row of 5s; R6 rows
-     7 and 9) genuine glyphs bottomed out at 113-128 with most stroke pixels
-     at 150-158 - real strokes, invisible to a fixed 140, so the only "ink"
-     the gate saw was neighbouring card edges at the window border. The
-     template matched those same cards at 0.60-0.84. Same lesson as
-     cardFraction: an absolute brightness number does not transfer across
-     photos. Used by both ink measures so the ink-ratio and centred-ink gates
-     agree. Swept 50-70 on all 39 rows: 89%/73% precision/recall -> 91%/79%
-     at 60 (+17 cards, one fewer false positive); 55 and 65 within two
-     points. R8 row 9: 2 of 13 -> 8 of 13.
-     Percentile is numpy's linear interpolation over a 256-bin histogram of
-     rounded luminance, so it matches the Python port on integer grey. */
-  var DARK_BELOW_PAPER = 60;
-  function darkCut(hist, n){
-    function kth(k){ var c = 0; for (var v = 0; v < 256; v++){ c += hist[v]; if (c > k) return v; } return 255; }
-    var pos = 0.75*(n-1), lo = Math.floor(pos), frac = pos - lo;
-    var a = kth(lo), b = frac ? kth(lo+1) : a;
-    return a + (b-a)*frac - DARK_BELOW_PAPER;
-  }
-
-  function glyphGray(cv, cx, cy){
-    var g = cv.getContext("2d");
-    var x0 = Math.round(cx - GLYPH_W/2), y0 = Math.round(cy - GLYPH_H/2);
-    x0 = Math.max(0, Math.min(cv.width - GLYPH_W, x0));
-    y0 = Math.max(0, Math.min(cv.height - GLYPH_H, y0));
-    var w = Math.min(GLYPH_W, cv.width), h = Math.min(GLYPH_H, cv.height);
-    var data;
-    try { data = g.getImageData(x0, y0, w, h).data; }
-    catch (e) { return null; }           // canvas tainted or out of bounds
-    var out = new Float32Array(w*h), hist = new Int32Array(256);
-    var gray8 = new Uint8Array(w*h), dark = 0;
-    for (var i = 0, p = 0; i < data.length; i += 4, p++){
-      var lum = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
-      out[p] = lum;
-      gray8[p] = Math.round(lum);
-      hist[gray8[p]]++;
-    }
-    var cut = darkCut(hist, w*h);
-    for (p = 0; p < w*h; p++) if (gray8[p] < cut) dark++;
-    /* Blur before correlating. A thin-stroke glyph - the diagonals of a K,
-       the loop of a Q - only correlates with itself when the strokes overlap
-       almost exactly; a couple of pixels of misalignment or a slight rotation
-       and they miss entirely, which is why those two ranks scored so far
-       below the solid-shaped ranks. Fattening the strokes means a small
-       error still leaves substantial overlap. Measured across six ground-
-       truth rows: Queens 56->78% recall, Jacks 88->100%, at a ~2 point
-       precision cost. Ink is measured on the sharp image, before the blur. */
-    return { data: gaussianBlur(out, w, h, BLUR_SIGMA), w: w, h: h, ink: dark/(w*h) };
-  }
-
-  /* What fraction of this window is card - bright and close to colourless -
-     rather than table, a card's own edge, or anything else. A rank glyph sits
-     on a small patch that is almost entirely blank card with a little ink;
-     wood grain and a card-to-table edge are not. */
-  function cardFraction(cv, cx, cy){
-    var g = cv.getContext("2d");
-    var x0 = Math.round(cx - GLYPH_W/2), y0 = Math.round(cy - GLYPH_H/2);
-    x0 = Math.max(0, Math.min(cv.width - GLYPH_W, x0));
-    y0 = Math.max(0, Math.min(cv.height - GLYPH_H, y0));
-    var w = Math.min(GLYPH_W, cv.width), h = Math.min(GLYPH_H, cv.height);
-    var data;
-    try { data = g.getImageData(x0, y0, w, h).data; }
-    catch (e) { return 0; }
-    var card = 0, n = w*h;
-    for (var i = 0; i < data.length; i += 4){
-      var r=data[i], gg=data[i+1], b=data[i+2];
-      var mx = Math.max(r,gg,b), mn = Math.min(r,gg,b);
-      var sat = mx ? (mx-mn)/mx : 0;
-      if (mx > 150 && sat < 0.36) card++;
-    }
-    return card/n;
-  }
-
-  var CENTER_MARGIN = 0.28;    // see centerInkFrac
-  var CENTER_INK_MIN = 0.05;
-  var MIN_TEXTURE = 11.0;    // see localTexture
-
-  /* Standard deviation of the local Laplacian - a rough sharpness/texture
-     measure. Found from a real false positive that survived every other
-     gate: a person's arm, pale and low-saturation enough to pass
-     cardFraction, with just enough shading to produce some centred "ink"
-     and clear centerInkFrac too. Card material - print, edges, the shadow
-     line between overlapping cards - has real local structure; smooth skin,
-     slightly out of focus, mostly doesn't. Measured directly: the skin false
-     positive scored 6.0, four genuine cards in the same row scored 13-16.
-     Swept across 28 real rows: 11.0 removes several more false positives
-     with zero cost to recall; 12 starts costing genuine cards. */
-  function localTexture(cv, cx, cy){
-    var g = cv.getContext("2d");
-    var x0 = Math.round(cx - GLYPH_W/2), y0 = Math.round(cy - GLYPH_H/2);
-    x0 = Math.max(0, Math.min(cv.width - GLYPH_W, x0));
-    y0 = Math.max(0, Math.min(cv.height - GLYPH_H, y0));
-    var w = Math.min(GLYPH_W, cv.width), h = Math.min(GLYPH_H, cv.height);
-    var data;
-    try { data = g.getImageData(x0, y0, w, h).data; }
-    catch (e) { return 0; }
-    var gray = new Float32Array(w*h);
-    for (var i = 0, p = 0; i < data.length; i += 4, p++){
-      gray[p] = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
-    }
-    // discrete Laplacian: 0 1 0 / 1 -4 1 / 0 1 0, with OpenCV's default
-    // border mode (BORDER_REFLECT_101 - reflect without duplicating the edge
-    // pixel). Verified numerically against cv2.Laplacian: plain clamping was
-    // off by ~9% near edges, this matches exactly.
-    function reflect101(i, n){
-      if (i < 0) return -i;
-      if (i >= n) return 2*n - i - 2;
-      return i;
-    }
-    var lap = new Float32Array(w*h);
-    for (var yy=0; yy<h; yy++){
-      for (var xx=0; xx<w; xx++){
-        var c0 = gray[yy*w+xx];
-        var up = gray[reflect101(yy-1,h)*w+xx], down = gray[reflect101(yy+1,h)*w+xx];
-        var left = gray[yy*w+reflect101(xx-1,w)], right = gray[yy*w+reflect101(xx+1,w)];
-        lap[yy*w+xx] = up+down+left+right-4*c0;
-      }
-    }
-    var mean = 0; for (i=0;i<lap.length;i++) mean += lap[i]; mean /= lap.length;
-    var variance = 0; for (i=0;i<lap.length;i++){ var d=lap[i]-mean; variance += d*d; }
-    return Math.sqrt(variance/lap.length);
-  }
-
-  /* What fraction of a window's dark pixels sit in its own central region,
-     rather than scattered near an edge. Found from a real false positive
-     during live use: a window can pass both cardFraction and the ink-ratio
-     gate while containing no glyph at all, if it happens to catch a sliver
-     of something dark - table at the strip's own boundary, most often - off
-     to one side. Those two gates check the window's AGGREGATE brightness and
-     ink amount; neither checks WHERE the ink actually is. A confirmed real
-     case: a false positive with a plausible ink ratio (0.73) and card
-     fraction (0.78) turned out to have literally all of its dark pixels in
-     the strip's own table margin at the very top of the window - zero of
-     them anywhere near the claimed centre. Tested directly: that false
-     positive scored 0.0 here; a genuine match scored 0.22. Across 17 real
-     rows, requiring at least 0.05 raised precision from 71% to 85% for an
-     11-point recall cost - the person's own review flagged false positives,
-     not misses, as the more costly error to leave in. */
-  function centerInkFrac(cv, cx, cy){
-    var g = cv.getContext("2d");
-    var x0 = Math.round(cx - GLYPH_W/2), y0 = Math.round(cy - GLYPH_H/2);
-    x0 = Math.max(0, Math.min(cv.width - GLYPH_W, x0));
-    y0 = Math.max(0, Math.min(cv.height - GLYPH_H, y0));
-    var w = Math.min(GLYPH_W, cv.width), h = Math.min(GLYPH_H, cv.height);
-    var data;
-    try { data = g.getImageData(x0, y0, w, h).data; }
-    catch (e) { return 0; }
-    var my0 = Math.floor(h*CENTER_MARGIN), my1 = Math.floor(h*(1-CENTER_MARGIN));
-    var mx0 = Math.floor(w*CENTER_MARGIN), mx1 = Math.floor(w*(1-CENTER_MARGIN));
-    var gray8 = new Uint8Array(w*h), hist = new Int32Array(256);
-    for (var q = 0, p = 0; q < data.length; q += 4, p++){
-      gray8[p] = Math.round(data[q]*0.299 + data[q+1]*0.587 + data[q+2]*0.114);
-      hist[gray8[p]]++;
-    }
-    var cut = darkCut(hist, w*h);
-    var total = 0, central = 0;
-    for (var yy = 0; yy < h; yy++){
-      for (var xx = 0; xx < w; xx++){
-        if (gray8[yy*w + xx] < cut){
-          total++;
-          if (yy >= my0 && yy < my1 && xx >= mx0 && xx < mx1) central++;
+    cv.addEventListener("pointermove", function (ev){
+      if (!(ev.pointerId in self.pointers)) return;
+      var p = self.local(ev);
+      self.pointers[ev.pointerId] = p;
+      var ids = Object.keys(self.pointers);
+      if (ids.length >= 2 && self.pinch){
+        var a = self.pointers[ids[0]], b = self.pointers[ids[1]];
+        var d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d > 4 && self.pinch.d > 4){
+          // hold the point that was between the fingers still while scaling
+          var before = { x: self.pinch.ox + self.pinch.mx / self.pinch.z,
+                         y: self.pinch.oy + self.pinch.my / self.pinch.z };
+          self.view.z = self.clampZoom(self.pinch.z * (d / self.pinch.d));
+          var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+          self.view.ox = before.x - mx / self.view.z;
+          self.view.oy = before.y - my / self.view.z;
+          self.clampView();
+        }
+      } else if (self.drag){
+        self.drag.moved += Math.abs(p.x - self.drag.px) + Math.abs(p.y - self.drag.py);
+        if (self.opts.onDrag && self.opts.onDrag(self.toImage(p.x, p.y), p) === true){
+          // the owner handled it (a crop bar being dragged), so do not pan
+        } else {
+          self.view.ox = self.drag.ox - (p.x - self.drag.px) / self.view.z;
+          self.view.oy = self.drag.oy - (p.y - self.drag.py) / self.view.z;
+          self.clampView();
         }
       }
-    }
-    return total > 0 ? central/total : 0;
-  }
-
-  /* Normalised cross-correlation, tried at a handful of small offsets so a tap
-     a few pixels off-centre still lines up with the stored template. This is
-     deliberately simple - no thresholding, no rotation search - both because
-     it runs on every tap and needs to feel instant, and because same/different
-     is all that is being asked of it; naming the glyph is not.
-
-     On its own this is not a safe discriminator, and a first version shipped
-     without knowing that: on a window that is mostly flat white card, almost
-     anything with roughly the right coarse light/dark arrangement can score
-     deceptively high, because most of the patch contributes near-zero
-     variance and a small amount of accidental structure dominates the
-     statistic - wood grain, a card's own edge against the table, even a suit
-     pip. Tested against real photos this produced 26 hits on a strip of
-     roughly 9 real cards. The two gates below (cardFraction, ink-amount
-     agreement) exist specifically to keep those cases from ever reaching the
-     correlation check at all, rather than trying to out-threshold them. */
-  function corrAt(a, b, w, h, dx, dy){
-    var sa=0, sb=0, n=0;
-    for (var y=0; y<h; y++){
-      var by = y+dy; if (by<0 || by>=h) continue;
-      for (var x=0; x<w; x++){
-        var bx = x+dx; if (bx<0 || bx>=w) continue;
-        sa += a[y*w+x]; sb += b[by*w+bx]; n++;
+      self.draw();
+    });
+    function end(ev){
+      delete self.pointers[ev.pointerId];
+      if (Object.keys(self.pointers).length < 2) self.pinch = null;
+      if (!Object.keys(self.pointers).length){
+        if (self.drag && self.opts.onUp) self.opts.onUp(self.drag);
+        self.drag = null;
       }
+      self.draw();
     }
-    if (n < w*h*0.5) return -1;
-    var ma = sa/n, mb = sb/n, num=0, da=0, db=0;
-    for (y=0; y<h; y++){
-      by = y+dy; if (by<0 || by>=h) continue;
-      for (x=0; x<w; x++){
-        bx = x+dx; if (bx<0 || bx>=w) continue;
-        var va = a[y*w+x]-ma, vb = b[by*w+bx]-mb;
-        num += va*vb; da += va*va; db += vb*vb;
-      }
-    }
-    if (da<1e-6 || db<1e-6) return -1;
-    return num / Math.sqrt(da*db);
+    cv.addEventListener("pointerup", end);
+    cv.addEventListener("pointercancel", end);
+    cv.addEventListener("wheel", function (ev){
+      ev.preventDefault();
+      var p = self.local(ev);
+      var before = self.toImage(p.x, p.y);
+      self.view.z = self.clampZoom(self.view.z * (ev.deltaY < 0 ? 1.18 : 1 / 1.18));
+      var after = self.toImage(p.x, p.y);
+      self.view.ox += before.x - after.x;
+      self.view.oy += before.y - after.y;
+      self.clampView(); self.draw();
+    }, { passive: false });
   }
 
-  function matchScore(tmpl, cand){
-    if (!tmpl || !cand || tmpl.w!==cand.w || tmpl.h!==cand.h) return -1;
-    var best = -1;
-    for (var dy=-6; dy<=6; dy+=3)
-      for (var dx=-6; dx<=6; dx+=3){
-        var s = corrAt(tmpl.data, cand.data, tmpl.w, tmpl.h, dx, dy);
-        if (s>best) best = s;
-      }
-    return best;
-  }
+  Stage.prototype.local = function (ev){
+    var r = this.canvas.getBoundingClientRect();
+    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+  };
+  Stage.prototype.size = function (){
+    return { w: this.canvas.clientWidth || 1, h: this.canvas.clientHeight || 1 };
+  };
+  /* A hand is very wide and not tall. A fixed-height stage leaves most of it
+     empty green at the zoom that shows the whole thing, so the stage takes the
+     photo's own shape, within reason. */
+  Stage.prototype.shapeTo = function (w, h){
+    var wide = this.canvas.clientWidth || this.host.clientWidth || 380;
+    return this.resize(clamp(Math.round(wide * h / w), 200,
+                             Math.round((window.innerHeight || 800) * 0.5)));
+  };
+  Stage.prototype.resize = function (h){
+    this.dpr = window.devicePixelRatio || 1;
+    this.canvas.style.height = h + "px";
+    var s = this.size();
+    /* Zero means the panel is not on screen yet. Sizing to it would fit the
+       view to nothing and leave the photo scrolled off; wait to be shown. */
+    if (s.w < 2){ this.pending = h; return false; }
+    this.pending = 0;
+    this.canvas.width  = Math.max(1, Math.round(s.w * this.dpr));
+    this.canvas.height = Math.max(1, Math.round(s.h * this.dpr));
+    return true;
+  };
+  Stage.prototype.bounds = function (){ return this.opts.bounds(); };
+  Stage.prototype.fitZoom = function (){
+    var b = this.bounds(), s = this.size();
+    return Math.min(s.w / b.w, s.h / b.h);
+  };
+  Stage.prototype.clampZoom = function (z){ return clamp(z, this.fitZoom() * 0.9, 12); };
+  Stage.prototype.fit = function (){
+    var b = this.bounds(), s = this.size();
+    this.view.z = this.fitZoom();
+    this.view.ox = b.x + (b.w - s.w / this.view.z) / 2;
+    this.view.oy = b.y + (b.h - s.h / this.view.z) / 2;
+    this.clampView();
+  };
+  Stage.prototype.clampView = function (){
+    var b = this.bounds(), s = this.size();
+    var vw = s.w / this.view.z, vh = s.h / this.view.z;
+    this.view.ox = (b.w <= vw) ? b.x + (b.w - vw) / 2 : clamp(this.view.ox, b.x, b.x + b.w - vw);
+    this.view.oy = (b.h <= vh) ? b.y + (b.h - vh) / 2 : clamp(this.view.oy, b.y, b.y + b.h - vh);
+  };
+  Stage.prototype.toImage = function (px, py){
+    return { x: this.view.ox + px / this.view.z, y: this.view.oy + py / this.view.z };
+  };
+  Stage.prototype.toScreen = function (ix, iy){
+    return { x: (ix - this.view.ox) * this.view.z, y: (iy - this.view.oy) * this.view.z };
+  };
+  Stage.prototype.centreImage = function (){
+    var s = this.size();
+    return this.toImage(s.w / 2, s.h / 2);
+  };
+  Stage.prototype.draw = function (){
+    if (this.opts.draw) this.opts.draw(this);
+  };
+  /* Blit the part of a source canvas the viewport actually covers. Drawing the
+     whole photo every frame and letting the browser clip it is what makes a
+     12-megapixel image feel slow on a phone. */
+  Stage.prototype.blit = function (src, sx0, sy0, sx1, sy1){
+    var ctx = this.ctx, s = this.size(), z = this.view.z;
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.fillStyle = "#0b2318";
+    ctx.fillRect(0, 0, s.w, s.h);
+    var ix0 = Math.max(this.view.ox, sx0), iy0 = Math.max(this.view.oy, sy0);
+    var ix1 = Math.min(this.view.ox + s.w / z, sx1), iy1 = Math.min(this.view.oy + s.h / z, sy1);
+    if (ix1 <= ix0 || iy1 <= iy0) return;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(src, ix0, iy0, ix1 - ix0, iy1 - iy0,
+                  (ix0 - this.view.ox) * z, (iy0 - this.view.oy) * z,
+                  (ix1 - ix0) * z, (iy1 - iy0) * z);
+  };
 
-  /* Fourth pass. The third attempt's own diagnostic, read live against a
-     real photo, showed why a fixed brightness/saturation model does not
-     transfer across photos: 39 candidates rejected by the background gate
-     on this one row, the best of them at 0.96 correlation - essentially
-     certain matches, discarded anyway. The ink-ratio gate beside it never
-     had this problem, because it was never an absolute number: it compares
-     each candidate against what THIS template itself measured. The
-     background gate now does the same - CARD_FRACTION_MIN stays only as a
-     fallback for the case a template's own fraction could not be measured. */
-  var AUTOFILL_CONFIDENT = 0.68;
-  var AUTOFILL_MAYBE      = 0.52;
-  var AUTOFILL_MIN_GAP    = Math.round(GLYPH_W * 0.55);
-  var CARD_FRACTION_MIN   = 0.35;   // fallback only - see CARD_FRACTION_REL
-  var CARD_FRACTION_REL   = 0.55;   // a candidate needs at least this fraction
-                                     // of what the template itself measured
-  var INK_RATIO_MAX       = 2.2;    // reject ink amounts too unlike the template's
+  /* ---------------- step 1: turn it upright, then trim ---------------- */
 
-  /* Slide the row's own template along the rest of the strip, instead of
-     waiting for a tap at every position. This is the same one-shot matching
-     already used to check a tap, just run forward over a search rather than
-     backward against a single point - the same idea the person described:
-     the first tap teaches the system what to look for, and the rest of the
-     row is found rather than re-taught card by card.
+  var frameStage = null, cropGrab = null;
 
-     Three passes: a coarse single-offset correlation scan across the whole
-     strip, cheap on purpose; the two content gates (card-coloured, plausible
-     ink amount) applied only to whatever cleared that scan, before anything
-     expensive runs; then the full small-offset search - the same one a tap
-     gets - only on what survives both. This has now been tested against a
-     real photo once, found to over-trigger badly, and tightened in response
-     (see the note on corrAt) - it has not yet been re-tested against a real
-     photo since that fix, and that is the thing to check next. */
-  /* Two live attempts landed on opposite sides of correct: the first version
-     found 26 positions on a row of about 9 real cards (background, pips and
-     card edges all matching); tightening it in response found only 6 of 11.
-     Guessing a third threshold blind is not a good use of anyone's time, so
-     this version tracks WHY each rejected position was rejected - which
-     gate, and how close it came - and reports that back, so the next
-     adjustment is measured against this row's actual numbers rather than
-     guessed again.
-
-     Y search: a third ground-truth test (a Queens row) found scores
-     collapsing across most of the row - not a threshold problem, a wrong
-     assumption. The coarse scan checked every x position at the SAME y as
-     the seed, and this row's actual stagger varied by over 50px top to
-     bottom. Confirmed directly against the exported strip: every missed
-     card's score roughly doubled when checked at its own true y instead of
-     the seed's. So the coarse scan now searches a range of y values at each
-     x and keeps the best, and every stage downstream carries that
-     candidate's OWN y forward, not the seed's - checked against three real
-     rows: two went from finding most of the row to finding all of it, the
-     third (Queens) more than doubled, though it still falls short - the
-     cursive glyph itself appears to correlate less consistently card to
-     card, a different problem this change does not reach. */
-  function findRowMatches(cv, tmpl, y){
-    var w = cv.width, coarse = [];
-    for (var x = GLYPH_W/2; x <= w - GLYPH_W/2; x += 6){
-      var bestS = -1, bestY = y, bestCrop = null, seenY0 = {};
-      // +-30 at first. A second Kings row showed why that is not enough: its
-      // seed sat at y=25 while the rest of the row sat at 56-92, so a window
-      // centred on the seed could reach only 3 of 8 cards. +-70 reaches them
-      // (Kings2 25->62% recall) with no rank losing recall once combined with
-      // the blur. A fixed window centred on the seed is still the wrong shape
-      // in principle - the right thing is to follow the row's drift.
-      //
-      // Skip anything that would need clamping rather than let glyphGray
-      // silently clamp it. Near the top or bottom of a short strip, a wide
-      // search range can have ten or more different dy values all land on
-      // the exact same clamped crop - which then wins "best of many" through
-      // sheer repetition, not by being a good match. Symptom in practice:
-      // marks pinned to the very top edge, correctly aligned in x, because
-      // that one corrupted sample kept winning at many different x positions.
-      for (var dy = -Y_SEARCH; dy <= Y_SEARCH; dy += 6){
-        var cy = y+dy, y0 = Math.round(cy - GLYPH_H/2);
-        if (y0 < 0 || y0 + GLYPH_H > cv.height) continue;
-        if (seenY0[y0]) continue;
-        seenY0[y0] = true;
-        var c2 = glyphGray(cv, x, cy);
-        if (!c2) continue;
-        var s2 = corrAt(tmpl.data, c2.data, tmpl.w, tmpl.h, 0, 0);
-        if (s2 > bestS){ bestS = s2; bestY = cy; bestCrop = c2; }
-      }
-      if (bestCrop) coarse.push({x:x, y:bestY, s:bestS, ink:bestCrop.ink});
+  function showFrame(){
+    $("rfFrameSheet").hidden = false;
+    $("rfReviewSheet").hidden = true;
+    if (!frameStage){
+      frameStage = new Stage($("rfFrame"), {
+        bounds: function(){ return { x: 0, y: 0, w: rotW(), h: rotH() }; },
+        draw: drawFrame,
+        onDown: function(img, p){
+          // grab whichever crop bar is nearer, but only if the touch is near one
+          var t = frameStage.toScreen(0, workTop()).y, b = frameStage.toScreen(0, workBot()).y;
+          var dt = Math.abs(p.y - t), db = Math.abs(p.y - b);
+          cropGrab = (Math.min(dt, db) <= 44) ? (dt <= db ? "top" : "bottom") : null;
+        },
+        onDrag: function(img){
+          if (!cropGrab) return false;
+          var y = clamp(img.y, 0, rotH());
+          if (cropGrab === "top") CROP.top = clamp(Math.round(y), 0, rotH() - CROP.bottom - 80);
+          else CROP.bottom = clamp(Math.round(rotH() - y), 0, rotH() - CROP.top - 80);
+          return true;
+        },
+        onUp: function(){ cropGrab = null; }
+      });
     }
-    // every local maximum, not just ones already above threshold - a real
-    // card that scored too low to accept is exactly what needs to be seen,
-    // not discarded before it can be reported
-    var maxima = [];
-    for (var i=0; i<coarse.length; i++){
-      var c = coarse[i];
-      if (c.s < 0.15) continue;   // floor only to skip flat, featureless runs
-      var prev = coarse[i-1], next = coarse[i+1];
-      if ((!prev || c.s >= prev.s) && (!next || c.s >= next.s)) maxima.push(c);
-    }
-
-    var diag = {
-      weak:       { count:0, best:-1 },   // coarse score never cleared the floor to even be tried properly
-      background: { count:0, best:-1 },   // failed cardFraction
-      ink:        { count:0, best:-1 },   // failed ink-ratio
-      refined:    { count:0, best:-1 }    // passed both gates, still too low after the full offset search
-    };
-    function note(bucket, score){
-      diag[bucket].count++;
-      if (score > diag[bucket].best) diag[bucket].best = score;
-    }
-
-    var passedGates = [];
-    maxima.forEach(function(c){
-      if (c.s < AUTOFILL_MAYBE - 0.15){ note("weak", c.s); return; }
-      var cardMin = tmpl.cardFrac !== undefined
-        ? Math.max(0.22, tmpl.cardFrac * CARD_FRACTION_REL)
-        : CARD_FRACTION_MIN;
-      if (cardFraction(cv, c.x, c.y) < cardMin){ note("background", c.s); return; }
-      var ratio = tmpl.ink > 0.01 ? c.ink / tmpl.ink : 1;
-      if (ratio > INK_RATIO_MAX || ratio < 1/INK_RATIO_MAX){ note("ink", c.s); return; }
-      passedGates.push(c);
-    });
-
-    // refine each survivor with the full offset search, same scoring a tap
-    // would get, so an auto-placed mark and a manual one mean the same thing
-    var refined = [];
-    passedGates.forEach(function(c){
-      var crop = glyphGray(cv, c.x, c.y);
-      var s = crop ? matchScore(tmpl, crop) : -1;
-      if (s >= AUTOFILL_MAYBE) refined.push({x:c.x, y:c.y, s:s});
-      else note("refined", s);
-    });
-
-    // greedy non-max suppression by score, not by position - the earlier,
-    // broken attempt at this (see the PDD) merged whatever was numerically
-    // closest, which collapsed genuinely adjacent cards together. Picking
-    // the best-scoring candidate first and suppressing only what is really
-    // too close to IT avoids that.
-    refined.sort(function(a,b){ return b.s - a.s; });
-    var keptCandidates = [];
-    refined.forEach(function(c){
-      if (keptCandidates.every(function(k){ return Math.abs(k.x - c.x) >= AUTOFILL_MIN_GAP; })) keptCandidates.push(c);
-    });
-
-    // A window can pass every gate above and still have no glyph in it at
-    // all, if it happens to catch a sliver of something dark off to one
-    // side. Those gates check amount; this checks position, on the position
-    // that actually won.
-    var kept = [];
-    diag.centered = { count:0, best:-1 };
-    diag.texture = { count:0, best:-1 };
-    keptCandidates.forEach(function(c){
-      if (centerInkFrac(cv, c.x, c.y) < CENTER_INK_MIN){ note("centered", c.s); return; }
-      // Skin can pass both gates above - pale and low-saturation enough for
-      // cardFraction, with enough shading to clear centerInkFrac too. This
-      // is the one signal that told the two apart.
-      if (localTexture(cv, c.x, c.y) < MIN_TEXTURE){ note("texture", c.s); return; }
-      kept.push(c);
-    });
-
-    kept.sort(function(a,b){ return a.x - b.x; });
-    return { kept: kept, diag: diag };
+    frameStage.shapeTo(rotW(), rotH());
+    frameStage.fit();
+    $("rfTurnNote").textContent = ROT + "°";
+    frameStage.draw();
   }
 
-  /* Runs right after the seeding tap, and again on demand from "Find more" -
-     never overwrites what is already there. Marks placed manually, including
-     any the person has already corrected, are left alone; a spot too close
-     to an existing mark of any kind is skipped rather than doubled up. */
-  function autoFillRow(idx, canvas){
-    var tmpl = TEMPLATES[idx], y = TEMPLATE_Y[idx];
-    if (!tmpl || y === undefined || !canvas) return { added:0, diag:null };
-    var st = READ[idx]; if (!st) return { added:0, diag:null };
-    var result = findRowMatches(canvas, tmpl, y);
-    var added = 0;
-    result.kept.forEach(function(c){
-      var tooClose = st.marks.some(function(m){ return Math.abs(m.x - c.x) < AUTOFILL_MIN_GAP; });
-      if (tooClose) return;
-      st.marks.push({ x:c.x, y:c.y, kind:"nat", uncertain: c.s < AUTOFILL_CONFIDENT });
-      added++;
+  function drawFrame(st){
+    if (!ROTCV) return;
+    st.blit(ROTCV, 0, 0, rotW(), rotH());
+    var ctx = st.ctx, s = st.size();
+    var t = st.toScreen(0, workTop()).y, b = st.toScreen(0, workBot()).y;
+    ctx.fillStyle = "rgba(11,35,24,.72)";
+    if (t > 0) ctx.fillRect(0, 0, s.w, Math.min(t, s.h));
+    if (b < s.h) ctx.fillRect(0, Math.max(b, 0), s.w, s.h - Math.max(b, 0));
+    ctx.strokeStyle = "#D9A441"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, t); ctx.lineTo(s.w, t); ctx.moveTo(0, b); ctx.lineTo(s.w, b); ctx.stroke();
+    [t, b].forEach(function (y){
+      ctx.fillStyle = "#D9A441";
+      ctx.fillRect(s.w / 2 - 26, y - 9, 52, 18);
+      ctx.fillStyle = "#0b2318";
+      ctx.font = "bold 11px -apple-system,Segoe UI,sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("drag", s.w / 2, y);
+      ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
     });
-    return { added: added, diag: result.diag };
   }
 
-  function diagSummary(diag){
-    if (!diag) return "";
-    var parts = [];
-    ["background","ink","refined","weak","centered","texture"].forEach(function(k){
-      var d = diag[k];
-      if (d && d.count) parts.push(d.count + " " +
-        (k==="background"?"as background/edge":k==="ink"?"as wrong ink amount":
-         k==="refined"?"too weak after a close look":k==="centered"?"had ink, but not centred - likely no real glyph":
-         k==="texture"?"too smooth for a card - likely skin or blur":"too weak to try closely") +
-        " (best " + d.best.toFixed(2) + ")");
-    });
-    return parts.length ? "Missed: " + parts.join(", ") + "." : "";
+  function turn(dir){
+    if (!IMG) return;
+    ROT = (ROT + (dir > 0 ? 90 : 270)) % 360;
+    CROP = { top: 0, bottom: 0 };     // a crop measured on the old turn means nothing
+    CARDS = []; UNDO = []; DETECTED = false;
+    buildRotated();
+    showFrame();
   }
 
-  /* ------------------------------------------------------------------
-     Corner-glyph detector. A small YOLO model (yolov8n, 3M parameters)
-     fine-tuned on this deck's own corner indices - 13 classes: the eleven
-     ranks A K Q J 10 9 8 7 6 5 4, Joker, and 2. Trained on rounds 1-7 of
-     the ground-truth set (571 glyphs), scored on round 8 which it never
-     saw: 77 of 77 naturals, 12 of 12 wilds, every rank read correctly,
-     zero Jokers or 2s taken for naturals, and the only two extra boxes were
-     second hits on the same glyph, which the 50px minimum gap below
-     removes. The tap-to-seed matcher on the same rows, given a perfect
-     first tap for free, found 60 of 78. So this runs first; tapping stays
-     for whatever it misses, and every stamp it drops can be lifted the
-     same way as any other.
+  /* ---------------- the detector ---------------- */
 
-     Runs in the browser through onnxruntime-web (loaded on first use from
-     the CDN, cached by the service worker along with the model) - nothing
-     leaves the phone, and it works offline once cached. Training data,
-     scripts and the notebook live beside the project's ground-truth
-     folders; see AUTOFILL_HANDOFF.md.
-
-     Preprocessing must match how the model was trained and exported:
-     640x640 input, letterboxed with 114-grey padding centred as
-     ultralytics does it, RGB in 0..1. A strip is run in 640px-wide tiles
-     overlapping by 160px (the training tiles), and hits from overlapping
-     tiles are merged. */
-  var DETECT_MODEL   = "./glyphs-v1.onnx";     // rename on retrain: the cache is keyed by URL
+  var DETECT_MODEL   = "./glyphs-v2.onnx";    // rename on retrain: the cache is keyed by URL
   var DETECT_ORT     = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
   var DETECT_CLASSES = ["A","K","Q","J","10","9","8","7","6","5","4","joker","two"];
-  var DETECT_CONF    = 0.5;     // round 8: 0.5 and 0.7 both gave every card; 0.5 keeps a
-                                // little margin for a worse photo
-  var DETECT_IOU     = 0.7;     // ultralytics' own NMS default
+  var DETECT_CONF    = 0.5;
+  var DETECT_IOU     = 0.7;       // ultralytics' own NMS default
   var DETECT_TILE = 640, DETECT_OVERLAP = 160, DETECT_PAD = 114;
+  /* Two detections closer than this are the same card seen in two overlapping
+     tiles. Raised from 30 after round 8 left a spurious box wedged 36px between
+     two real cards; 40 removes it and is clean on both held-out rounds. The
+     ceiling is 46px, the closest two real cards have ever been in eight rounds
+     of ground truth, so this cannot merge two genuine cards. */
+  var DETECT_MERGE   = 40;
   var detectSession = null, detectLoading = null;
 
   function loadScript(src){
-    return new Promise(function(res, rej){
+    return new Promise(function (res, rej){
       var sc = document.createElement("script");
       sc.src = src; sc.onload = res; sc.onerror = function(){ rej(new Error("could not load " + src)); };
       document.head.appendChild(sc);
@@ -2255,18 +1838,24 @@ var reader = (function () {
     if (detectSession) return Promise.resolve(detectSession);
     if (detectLoading) return detectLoading;
     detectLoading = (window.ort ? Promise.resolve() : loadScript(DETECT_ORT + "ort.min.js"))
-      .then(function(){
+      .then(function (){
         ort.env.wasm.wasmPaths = DETECT_ORT;
         ort.env.wasm.numThreads = 1;     // no cross-origin isolation on a static host
         if (note) note("Loading the card reader (12 MB, first time only)…");
         return ort.InferenceSession.create(DETECT_MODEL, { executionProviders: ["wasm"] });
       })
-      .then(function(sess){ detectSession = sess; detectLoading = null; return sess; },
-            function(err){ detectLoading = null; throw err; });
+      .then(function (sess){ detectSession = sess; detectLoading = null; return sess; },
+            function (err){ detectLoading = null; throw err; });
     return detectLoading;
   }
 
-  /* One tile -> [{x, y, cls, conf}] in the tile's own pixels. */
+  /* One tile -> [{x, y, cls, conf}] in the tile's own pixels.
+
+     Unchanged from the strip reader, deliberately: this decode was checked
+     against the Colab model to within 20px on 41 of 41 hits, and the export it
+     now runs was checked again the same way - 178 of 178 detections, worst
+     position difference 0.3px. It is the one part of this file that has been
+     verified against another implementation, so it is copied, not rewritten. */
   function detectTile(sess, tile){
     var w = tile.width, h = tile.height, S = DETECT_TILE;
     var r = Math.min(S / w, S / h);
@@ -2284,7 +1873,7 @@ var reader = (function () {
     }
     var feeds = {};
     feeds[sess.inputNames[0]] = new ort.Tensor("float32", input, [1, 3, S, S]);
-    return sess.run(feeds).then(function(out){
+    return sess.run(feeds).then(function (out){
       var t = out[sess.outputNames[0]], data = t.data;
       var rows = t.dims[1], anchors = t.dims[2], ncls = rows - 4;
       var boxes = [];
@@ -2295,12 +1884,12 @@ var reader = (function () {
           if (sc > best){ best = sc; bc = c; }
         }
         if (best < DETECT_CONF) continue;
-        boxes.push({ cx: data[a], cy: data[anchors + a], w: data[2 * anchors + a], h: data[3 * anchors + a],
-                     cls: bc, conf: best });
+        boxes.push({ cx: data[a], cy: data[anchors + a], w: data[2 * anchors + a],
+                     h: data[3 * anchors + a], cls: bc, conf: best });
       }
-      boxes.sort(function(p, q){ return q.conf - p.conf; });
+      boxes.sort(function (p, q){ return q.conf - p.conf; });
       var kept = [];
-      boxes.forEach(function(b){
+      boxes.forEach(function (b){
         for (var k = 0; k < kept.length; k++){
           var o = kept[k];
           var ix = Math.max(0, Math.min(b.cx + b.w/2, o.cx + o.w/2) - Math.max(b.cx - b.w/2, o.cx - o.w/2));
@@ -2310,548 +1899,413 @@ var reader = (function () {
         }
         kept.push(b);
       });
-      return kept.map(function(b){
+      return kept.map(function (b){
         return { x: (b.cx - left) / r, y: (b.cy - top) / r, cls: b.cls, conf: b.conf };
       });
     });
   }
 
-  /* A whole strip canvas (WITHOUT stamps painted on it) -> detections in
-     strip pixels, merged across tiles. */
-  function detectStrip(sess, canvas){
-    var w = canvas.width, h = canvas.height, tiles = [], x0 = 0;
-    while (true){
-      var x1 = Math.min(w, x0 + DETECT_TILE);
-      tiles.push([x0, x1]);
-      if (x1 >= w) break;
-      x0 += DETECT_TILE - DETECT_OVERLAP;
-    }
-    var all = [];
-    return tiles.reduce(function(chain, t){
-      return chain.then(function(){
-        var tc = document.createElement("canvas"); tc.width = t[1] - t[0]; tc.height = h;
-        tc.getContext("2d").drawImage(canvas, t[0], 0, tc.width, h, 0, 0, tc.width, h);
-        return detectTile(sess, tc).then(function(hits){
-          hits.forEach(function(d){ all.push({ x: d.x + t[0], y: d.y, cls: d.cls, conf: d.conf }); });
+  function tileStarts(length, tile, stride){
+    if (length <= tile) return [0];
+    var n = Math.max(2, Math.ceil((length - tile) / stride) + 1), out = [];
+    for (var i = 0; i < n; i++) out.push(Math.round(i * (length - tile) / (n - 1)));
+    return out;
+  }
+
+  /* The whole frame -> cards in frame pixels. Tiles two-dimensionally, because a
+     photo is not a row. */
+  function detectFrame(sess, frame, note){
+    var W = frame.width, H = frame.height, stride = DETECT_TILE - DETECT_OVERLAP;
+    var xs = tileStarts(W, DETECT_TILE, stride), ys = tileStarts(H, DETECT_TILE, stride);
+    var jobs = [];
+    ys.forEach(function (y0){ xs.forEach(function (x0){ jobs.push([x0, y0]); }); });
+    var all = [], done = 0;
+    return jobs.reduce(function (chain, j){
+      return chain.then(function (){
+        var cv = document.createElement("canvas");
+        var w = Math.min(DETECT_TILE, W - j[0]), h = Math.min(DETECT_TILE, H - j[1]);
+        cv.width = w; cv.height = h;
+        cv.getContext("2d").drawImage(frame, j[0], j[1], w, h, 0, 0, w, h);
+        return detectTile(sess, cv).then(function (hits){
+          hits.forEach(function (d){ all.push({ x: d.x + j[0], y: d.y + j[1], cls: d.cls, conf: d.conf }); });
+          done++;
+          if (note) note("Reading… " + done + " of " + jobs.length);
         });
       });
-    }, Promise.resolve()).then(function(){
-      all.sort(function(p, q){ return q.conf - p.conf; });
+    }, Promise.resolve()).then(function (){
+      all.sort(function (p, q){ return q.conf - p.conf; });
       var kept = [];
-      all.forEach(function(d){
-        if (kept.every(function(k){ return Math.abs(k.x - d.x) > 30 || Math.abs(k.y - d.y) > 30; })) kept.push(d);
+      all.forEach(function (p){
+        for (var i = 0; i < kept.length; i++){
+          if (Math.hypot(p.x - kept[i].x, p.y - kept[i].y) <= DETECT_MERGE) return;
+        }
+        kept.push(p);
       });
-      kept.sort(function(p, q){ return p.x - q.x; });
       return kept;
     });
   }
-  // For checking the in-browser decoder against the training notebook's
-  // numbers on the same strips - not used by the app itself.
-  window.__glyphDetect = function(canvas){ return detectorReady().then(function(s){ return detectStrip(s, canvas); }); };
 
-  /* Drop the detector's hits onto one row as stamps. Existing stamps are
-     never moved or replaced; a hit within the minimum gap of one is skipped.
-     A natural the detector read as a different rank from the row's is still
-     placed - the detector may be right and the row's rank wrong - but ringed
-     as uncertain, and the row's note says what was read. */
-  function detectRow(sess, idx){
-    var band = BANDS[idx]; if (!band) return Promise.resolve({ added: 0 });
-    var st = READ[idx] || (READ[idx] = { rank: RANKORDER[idx] || "", marks: [] });
-    if (!st.marks) st.marks = [];
-    var clean = drawStripImage(geom(band), bh(), lead());
-    return detectStrip(sess, clean).then(function(hits){
-      var added = 0, other = {};
-      hits.forEach(function(d){
-        var name = DETECT_CLASSES[d.cls];
-        var kind = name === "joker" ? "jok" : name === "two" ? "two" : "nat";
-        if (st.marks.some(function(m){ return Math.abs(m.x - d.x) < AUTOFILL_MIN_GAP; })) return;
-        var mark = { x: d.x, y: d.y, kind: kind, uncertain: false, det: name };
-        if (kind === "nat" && st.rank && name !== st.rank){
-          mark.uncertain = true;
-          other[name] = (other[name] || 0) + 1;
-        }
-        st.marks.push(mark);
-        added++;
-      });
-      var names = Object.keys(other);
-      st.lastDiag = names.length
-        ? "Detector read " + names.map(function(k){ return other[k] + " as " + k; }).join(", ") +
-          (st.rank ? " on a row set to " + st.rank : "") + " - ringed; check the rank."
-        : null;
-      return { added: added };
-    });
-  }
-
-  function detectAll(){
-    var note = $("rfDetectNote"), btn = $("rfDetect");
-    if (!BANDS.length){ toast("Place the strips first"); return; }
-    if (!canEdit(TEAM, "books")){ toast("That team's books are locked"); return; }
+  function runDetect(){
+    if (!ROTCV) return;
+    var note = function (t){ $("rfDetectNote").textContent = t; };
+    var btn = $("rfFrameOk");
     btn.disabled = true;
-    var say = function(t){ if (note) note.textContent = t; };
-    detectorReady(say).then(function(sess){
-      var total = 0, i = 0;
-      function next(){
-        if (i >= BANDS.length){
-          say(""); btn.disabled = false; draw();
-          toast(total ? ("Stamped " + total + " cards - check the ringed ones, tap to fix") : "Found nothing to stamp");
-          return;
-        }
-        say("Reading row " + (i + 1) + " of " + BANDS.length + "…");
-        return detectRow(sess, i).then(function(r){ total += r.added; i++; return next(); });
-      }
-      return next();
-    }).catch(function(err){
-      btn.disabled = false; say("");
-      toast("Card reader unavailable - " + (navigator.onLine ? "try again" : "needs a connection the first time"));
-      if (window.console) console.warn(err);
-    });
-  }
-
-  /* Stamping borrowed from cell counting under a microscope: cover each item as
-     it is counted, so the eye can see what is still unassessed and the total is
-     the number of marks rather than a running tally in the head. */
-  function paintMarks(cv, st){
-    var g = cv.getContext("2d");
-    (st.marks||[]).forEach(function(m, i){
-      var col = (MARKS.filter(function(x){ return x[0]===m.kind; })[0] || MARKS[0])[2];
-      g.beginPath(); g.arc(m.x, m.y, 26, 0, Math.PI*2);
-      g.fillStyle = col + "cc"; g.fill();
-      g.lineWidth = 3;
-      // A "nat" stamp that did not match this strip's established template
-      // still gets placed - tapping is never blocked - but is ringed
-      // differently so it reads as worth a second look, not as certain.
-      g.strokeStyle = m.uncertain ? "#F0C24A" : "#FFFFFFdd";
-      if (m.uncertain){ g.setLineDash([4,3]); }
-      g.stroke();
-      g.setLineDash([]);
-      g.fillStyle = "#fff"; g.font = "bold 26px sans-serif";
-      g.textAlign = "center"; g.textBaseline = "middle";
-      g.fillText(m.kind === "nat" ? String(i+1) : (m.kind === "jok" ? "J" : "2"), m.x, m.y);
-      g.textAlign = "start"; g.textBaseline = "alphabetic";
-      if (m.uncertain){
-        g.fillStyle = "#F0C24A"; g.font = "bold 15px sans-serif";
-        g.fillText("?", m.x+18, m.y-16);
-      }
-    });
-  }
-
-  function modeBar(){
-    var box = $("rfMode"); if (!box) return;
-    box.innerHTML = "";
-    MARKS.forEach(function(m){
-      var b = el("button", "rfmode", m[1]);
-      b.setAttribute("aria-pressed", MODE === m[0] ? "true" : "false");
-      b.onclick = function(){ MODE = m[0]; modeBar(); };
-      box.appendChild(b);
-    });
-  }
-
-  /* Ranks in the order rows are usually laid, so the dropdowns start close to
-     right and most of them need no touching. */
-  var RANKORDER = ["A","K","Q","J","10","9","8","7","6","5","4"];
-
-  function drawStrips(){
-    var host = $("rfStrips");
-    // A tap redraws every strip's canvas from scratch, which makes a brand
-    // new scroll container each time - the browser has no memory of where a
-    // fresh element was scrolled to, so without this the view snaps back to
-    // the left edge after every single stamp. Save each row's scroll
-    // position by strip index before clearing, restore it after rebuilding.
-    var savedScroll = {};
-    host.querySelectorAll(".rfscroll").forEach(function(el){
-      savedScroll[el.dataset.idx] = el.scrollLeft;
-    });
-    host.innerHTML = "";
-    host.style.setProperty("--rfsh", (parseInt($("rfSh").value,10)||150) + "px");
-    var H = bh(), lin = lead();
-    BANDS.forEach(function(band,i){
-      var gm = geom(band);
-      var row = document.createElement("div");
-      row.className = "rfrow" + (i === CUR ? " on" : "");
-      var sc = document.createElement("div"); sc.className = "rfscroll";
-      sc.dataset.idx = i;
-      var cv = drawStripImage(gm, H, lin);
-      sc.appendChild(cv);
-      // Deliberately not restored here: sc has not been attached to the
-      // document yet, so it has no real layout and no scrollWidth. Setting
-      // scrollLeft on a detached element is silently ignored by the browser -
-      // this was the actual bug, not the save/restore logic itself. Restored
-      // in one pass after the whole row list is back in the DOM, below.
-
-      var st = READ[i] || (READ[i] = { rank: RANKORDER[i] || "", marks: [] });
-      if (!st.marks) st.marks = [];
-      paintMarks(cv, st);
-      sc.onclick = (function (idx, canvas, state) {
-        return function (ev) {
-          var r = canvas.getBoundingClientRect();
-          var x = (ev.clientX - r.left) * (canvas.width / r.width);
-          var y = (ev.clientY - r.top) * (canvas.height / r.height);
-          /* Tapping an existing stamp lifts it. Anything else drops a new one -
-             so a miscount is undone by tapping the same card again, not by
-             recounting the row. */
-          var hit = -1, best = 34;
-          state.marks.forEach(function (m, k) {
-            var d = Math.hypot(m.x - x, m.y - y);
-            if (d < best) { best = d; hit = k; }
-          });
-          if (hit >= 0){
-            state.marks.splice(hit, 1);
-            draw();
-            return;
-          }
-
-          var mark = { x: x, y: y, kind: MODE, uncertain: false };
-          var seeded = false;
-          if (MODE === "nat"){
-            var crop = glyphGray(canvas, x, y);
-            var tmpl = TEMPLATES[idx];
-            if (!tmpl && crop){
-              // The first natural tap in a strip has nothing to compare
-              // against yet - it becomes the reference the rest are checked
-              // against, silently, with no separate "set template" step.
-              // Its own card-fraction is measured here too, so the
-              // background gate can be relative to THIS photo's lighting
-              // rather than an absolute number assumed to hold everywhere -
-              // see the note beside cardFraction for why that mattered.
-              crop.cardFrac = cardFraction(canvas, x, y);
-              TEMPLATES[idx] = crop; TEMPLATE_Y[idx] = y; seeded = true;
-            } else if (tmpl && crop){
-              var score = matchScore(tmpl, crop);
-              if (score >= 0 && score < 0.45){
-                mark.uncertain = true;
-                toast("Doesn't match this row - Joker or 2? Tap it again, then pick the right kind.");
-              }
-            }
-          }
-          state.marks.push(mark);
-          CUR = idx;
-          if (seeded){
-            // The first tap is the whole point: it is what turns "tap every
-            // card" into "tap one card". Run the search immediately rather
-            // than waiting for a second action.
-            var r = autoFillRow(idx, canvas);
-            state.lastDiag = diagSummary(r.diag);
-            draw();
-            toast(r.added ? ("Found " + r.added + " more - check the ringed ones") : "Found no others to match - tap the rest by hand");
-          } else {
-            draw();
-          }
-        };
-      })(i, cv, st);
-
-      var line = document.createElement("div"); line.className = "rfline";
-      var sel = document.createElement("select");
-      var blank = document.createElement("option"); blank.value=""; blank.textContent="rank";
-      sel.appendChild(blank);
-      RANKS.forEach(function(r){
-        var o = document.createElement("option"); o.value=r; o.textContent=r;
-        if (r === st.rank) o.selected = true;
-        sel.appendChild(o);
+    note("Getting ready…");
+    detectorReady(note).then(function (sess){
+      return detectFrame(sess, frameCanvas(), note);
+    }).then(function (hits){
+      CARDS = hits.map(function (h){
+        return { x: h.x, y: h.y, cls: h.cls, conf: h.conf, manual: false };
       });
-      sel.onchange = function(){ st.rank = this.value; check(); };
-      line.appendChild(sel);
-
-      var t = tally(st);
-      var tal = document.createElement("div"); tal.className = "rftally";
-      tal.innerHTML = "<span><b>" + t.nat + "</b> cards</span>" +
-        (t.jok ? "<span class='w'><b>" + t.jok + "</b> joker" + (t.jok===1?"":"s") + "</span>" : "") +
-        (t.two ? "<span class='w'><b>" + t.two + "</b> two" + (t.two===1?"":"s") + "</span>" : "") +
-        "<span style='color:var(--ink-soft)'>" + (t.nat+t.jok+t.two) + " total</span>";
-      line.appendChild(tal);
-
-      // Persists on screen, unlike a toast - the auto-fill diagnostic reads
-      // as one clause per way a card can be missed, and someone reading it
-      // to decide whether the thresholds need adjusting needs it to still be
-      // there after a glance away, not gone in under two seconds.
-      if (st.lastDiag){
-        var diagEl = document.createElement("div");
-        diagEl.style.cssText = "font-size:12.5px;color:var(--ink-soft);margin-top:4px";
-        diagEl.textContent = st.lastDiag;
-        line.appendChild(diagEl);
-      }
-
-      var clr = document.createElement("button");
-      clr.className = "btn"; clr.textContent = "Clear";
-      clr.onclick = function(e){ e.stopPropagation(); st.marks = []; st.lastDiag = null; delete TEMPLATES[i]; delete TEMPLATE_Y[i]; draw(); };
-      line.appendChild(clr);
-
-      var det = document.createElement("button");
-      det.className = "btn"; det.textContent = "Detect";
-      det.title = "Read this row with the card detector";
-      det.onclick = (function(idx){
-        return function(e){
-          e.stopPropagation();
-          if (!canEdit(TEAM, "books")){ toast("That team's books are locked"); return; }
-          detectorReady(function(t){ toast(t); }).then(function(sess){ return detectRow(sess, idx); })
-            .then(function(r){ draw(); toast(r.added ? ("Stamped " + r.added + " - check the ringed ones") : "Nothing new found"); })
-            .catch(function(err){ toast("Card reader unavailable - " + (navigator.onLine ? "try again" : "needs a connection the first time")); if (window.console) console.warn(err); });
-        };
-      })(i);
-      line.appendChild(det);
-
-      if (TEMPLATES[i]){
-        var find = document.createElement("button");
-        find.className = "btn"; find.textContent = "Find more";
-        find.title = "Search this row again with the template already captured";
-        find.onclick = (function(idx, canvas, state){
-          return function(e){
-            e.stopPropagation();
-            var r = autoFillRow(idx, canvas);
-            state.lastDiag = diagSummary(r.diag);
-            draw();
-            toast(r.added ? ("Found " + r.added + " more - check the ringed ones") : "Nothing new found");
-          };
-        })(i, cv, st);
-        line.appendChild(find);
-      }
-
-      row.appendChild(sc); row.appendChild(line);
-      row.onclick = function(e){ if (e.target === row || e.target === sc){ CUR = i; draw(); } };
-      host.appendChild(row);
-    });
-    // Restore scroll position now, after every row is actually attached to
-    // the document - only now does each rfscroll container have real layout
-    // for scrollLeft to apply against.
-    host.querySelectorAll(".rfscroll").forEach(function(el){
-      var saved = savedScroll[el.dataset.idx];
-      if (saved !== undefined) el.scrollLeft = saved;
-    });
-    $("rfReadSheet").hidden = !BANDS.length;
-  }
-
-  /* The same bounds the scorepad already applies, shown here so a misread is
-     caught before it reaches the round rather than after. */
-  function check(){
-    var w = $("rfWarn"); w.innerHTML = "";
-    var seen = {}, msgs = [];
-    BANDS.forEach(function(_, i){
-      var st = READ[i]; if (!st || !st.rank) return;
-      if (seen[st.rank]) msgs.push("two strips are both marked " + st.rank);
-      seen[st.rank] = true;
-      var t = tally(st), n = t.nat + t.jok + t.two, wild = t.jok + t.two;
-      if (!n) return;
-      if (wild > S.rules.maxWildsPerBook)
-        msgs.push(st.rank + "s hold " + wild + " wilds; no book takes more than " + S.rules.maxWildsPerBook);
-      else if (n >= S.rules.bookMinimum && wild >= t.nat)
-        msgs.push(st.rank + "s have " + wild + " wilds against " + t.nat + " naturals");
-      else if (n < S.rules.bookMinimum)
-        msgs.push(st.rank + "s have only " + n + " card" + (n===1?"":"s"));
-    });
-    msgs.forEach(function(m){
-      var li = document.createElement("li"); li.className = "bad"; li.textContent = m;
-      w.appendChild(li);
+      UNDO = []; DETECTED = true;
+      btn.disabled = false; note("");
+      showReview();
+    }, function (err){
+      btn.disabled = false;
+      note("");
+      toast("The card reader would not load: " + (err && err.message ? err.message : err));
     });
   }
 
-  function draw(){ drawStage(); drawStrips(); check(); }
+  /* ---------------- step 2: check the cards ---------------- */
 
-  function pointer(cv){
-    var mode = null;
-    function pt(e){
-      var r = cv.getBoundingClientRect();
-      return { x:(e.clientX-r.left)*(cv.width/r.width)/VIEW.scale,
-               y:(e.clientY-r.top)*(cv.height/r.height)/VIEW.scale };
+  var viewStage = null;
+  var PAD = [["card", "Card"], ["two", "2"], ["joker", "Joker"]];
+  var COLOUR = { nat: "#1E7A46", joker: "#7B3FA0", two: "#1D4ED8" };
+  var TAKE_PX = 46;          // how close the crosshair must be to lift a card
+  var COLUMN_PX = 150;       // how near a book's column a card must be to inherit its rank
+
+  function showReview(){
+    $("rfFrameSheet").hidden = true;
+    $("rfReviewSheet").hidden = false;
+    var frame = frameCanvas();
+    if (!viewStage){
+      viewStage = new Stage($("rfView"), {
+        bounds: function (){ return { x: 0, y: 0, w: frameW(), h: frameH() }; },
+        draw: drawReview
+      });
     }
-    cv.addEventListener("pointerdown", function(e){
-      if (!IMG || !BANDS.length) return;
-      var p = pt(e), gm = geom(BANDS[CUR]);
-      mode = Math.hypot(p.x-gm.G.x, p.y-gm.G.y) < 34/VIEW.scale ? "tilt" : "move";
-      cv.setPointerCapture(e.pointerId);
-      if (mode === "move"){
-        var lim = (AXIS===0?IMG.height:IMG.width)-1;
-        BANDS[CUR].pos = Math.round(Math.max(0, Math.min(lim, AXIS===0?p.y:p.x)));
-      }
-      draw();
-    });
-    cv.addEventListener("pointermove", function(e){
-      if (!mode) return;
-      var p = pt(e), band = BANDS[CUR];
-      if (mode === "move"){
-        var lim = (AXIS===0?IMG.height:IMG.width)-1;
-        band.pos = Math.round(Math.max(0, Math.min(lim, AXIS===0?p.y:p.x)));
-      } else {
-        var half = (AXIS===0?IMG.width:IMG.height)/2;
-        var off = (AXIS===0?p.y:p.x) - band.pos;
-        band.ang = Math.max(-MAXANG, Math.min(MAXANG, Math.atan2(off, half)*180/Math.PI));
-      }
-      draw();
-    });
-    cv.addEventListener("pointerup", function(){ mode = null; draw(); });
-    cv.addEventListener("dblclick", function(){ if (BANDS[CUR]){ BANDS[CUR].ang = 0; draw(); } });
+    viewStage.frame = frame;
+    viewStage.shapeTo(frameW(), frameH());
+    viewStage.fit();
+    padBar();
+    renderReview();
   }
 
-  function teamPicker(){
-    var box = $("rfTeam"); box.innerHTML = "";
-    ["A","B"].forEach(function(t){
-      var b = el("button", null, S.names[t]);
-      b.setAttribute("aria-pressed", TEAM === t ? "true" : "false");
-      b.onclick = function(){ TEAM = t; teamPicker(); };
+  function drawReview(st){
+    if (!st.frame) return;
+    st.blit(st.frame, 0, 0, frameW(), frameH());
+    var ctx = st.ctx, s = st.size();
+    CARDS.forEach(function (c){
+      var p = st.toScreen(c.x, c.y);
+      if (p.x < -30 || p.x > s.w + 30 || p.y < -30 || p.y > s.h + 30) return;
+      var kind = c.cls === 11 ? "joker" : (c.cls === 12 ? "two" : "nat");
+      ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.82; ctx.fillStyle = COLOUR[kind]; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.lineWidth = c.manual ? 3 : 2;
+      ctx.strokeStyle = c.manual ? "#FFE9A8" : "#fff"; ctx.stroke();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 11px -apple-system,Segoe UI,sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(kind === "joker" ? "JK" : (kind === "two" ? "2" : DETECT_CLASSES[c.cls]), p.x, p.y);
+      ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+    });
+    /* The crosshair does not follow the finger. It stays in the middle and the
+       photo moves under it, the way a map drops a pin - a crosshair under the
+       fingertip hides the very glyph being aimed at, at the moment it matters. */
+    var cx = s.w / 2, cy = s.h / 2;
+    var near = nearestCard(st.centreImage());
+    ctx.strokeStyle = near ? "#D9A441" : "rgba(255,255,255,.95)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 22, cy); ctx.lineTo(cx - 7, cy);
+    ctx.moveTo(cx + 7, cy);  ctx.lineTo(cx + 22, cy);
+    ctx.moveTo(cx, cy - 22); ctx.lineTo(cx, cy - 7);
+    ctx.moveTo(cx, cy + 7);  ctx.lineTo(cx, cy + 22);
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, 17, 0, Math.PI * 2);
+    ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  function nearestCard(pt){
+    var best = null, bd = TAKE_PX;
+    CARDS.forEach(function (c){
+      var d = Math.hypot(c.x - pt.x, c.y - pt.y);
+      if (d < bd){ bd = d; best = c; }
+    });
+    return best;
+  }
+
+  /* Each rank's cards sit in one near-vertical column. Across eight rounds of
+     ground truth every wild fell within 14px of its book's column centre, so a
+     card added near a column can take that column's rank and the person is only
+     asked when there is genuinely nothing to infer from. */
+  function columns(){
+    var sum = {}, n = {};
+    CARDS.forEach(function (c){
+      if (c.cls >= 11) return;
+      sum[c.cls] = (sum[c.cls] || 0) + c.x;
+      n[c.cls] = (n[c.cls] || 0) + 1;
+    });
+    var out = [];
+    Object.keys(n).forEach(function (k){ out.push({ cls: +k, x: sum[k] / n[k] }); });
+    return out;
+  }
+
+  function inferRank(x){
+    var cols = columns(), best = null, bd = COLUMN_PX;
+    cols.forEach(function (c){
+      var d = Math.abs(c.x - x);
+      if (d < bd){ bd = d; best = c.cls; }
+    });
+    return best;
+  }
+
+  function push(card){
+    UNDO.push({ type: "add", card: card });
+    CARDS.push(card);
+    renderReview();
+  }
+
+  function padBar(){
+    var box = $("rfPad"); box.innerHTML = "";
+    PAD.forEach(function (p){
+      var b = el("button", "btn kind", p[1]);
+      b.id = "rfPad_" + p[0];
+      b.onclick = function (){ place(p[0]); };
       box.appendChild(b);
     });
+    var take = el("button", "btn warn act", "Take out");
+    take.id = "rfTake";
+    take.onclick = takeOut;
+    box.appendChild(take);
+    var undo = el("button", "btn act", "Undo");
+    undo.id = "rfUndo";
+    undo.onclick = undoOne;
+    box.appendChild(undo);
+  }
+
+  function place(kind){
+    if (!viewStage) return;
+    var pt = viewStage.centreImage();
+    if (pt.x < 0 || pt.y < 0 || pt.x > frameW() || pt.y > frameH()) return;
+    if (kind === "joker"){ push({ x: pt.x, y: pt.y, cls: 11, conf: 1, manual: true }); return; }
+    if (kind === "two"){   push({ x: pt.x, y: pt.y, cls: 12, conf: 1, manual: true }); return; }
+    var cls = inferRank(pt.x);
+    if (cls === null){ askRank(pt); return; }
+    push({ x: pt.x, y: pt.y, cls: cls, conf: 1, manual: true });
+  }
+
+  /* Only reached when a card is nowhere near any book that already exists -
+     starting a book the reader found nothing of. Eleven buttons will not fit on
+     a phone alongside everything else, so they appear only when needed. */
+  function askRank(pt){
+    var row = $("rfRankRow");
+    row.hidden = false; row.innerHTML = "";
+    row.appendChild(el("span", "rfteam", "Which rank?"));
+    DETECT_CLASSES.slice(0, 11).forEach(function (r, i){
+      var b = el("button", "btn", r);
+      b.onclick = function (){
+        row.hidden = true; row.innerHTML = "";
+        push({ x: pt.x, y: pt.y, cls: i, conf: 1, manual: true });
+      };
+      row.appendChild(b);
+    });
+    var cancel = el("button", "btn warn", "Cancel");
+    cancel.onclick = function (){ row.hidden = true; row.innerHTML = ""; };
+    row.appendChild(cancel);
+  }
+
+  function takeOut(){
+    if (!viewStage) return;
+    var c = nearestCard(viewStage.centreImage());
+    if (!c){ toast("Nothing under the crosshair"); return; }
+    var i = CARDS.indexOf(c);
+    UNDO.push({ type: "remove", card: c, at: i });
+    CARDS.splice(i, 1);
+    renderReview();
+  }
+
+  function undoOne(){
+    var u = UNDO.pop();
+    if (!u) return;
+    if (u.type === "add"){
+      var i = CARDS.indexOf(u.card);
+      if (i >= 0) CARDS.splice(i, 1);
+    } else {
+      CARDS.splice(Math.min(u.at, CARDS.length), 0, u.card);
+    }
+    renderReview();
+  }
+
+  /* ---------------- what the round gets ---------------- */
+
+  function books(){
+    var out = {};
+    RANKS.forEach(function (r){ out[r] = { nat: 0, jok: 0, two: 0 }; });
+    var cols = columns();
+    CARDS.forEach(function (c){
+      if (c.cls < 11){ out[DETECT_CLASSES[c.cls]].nat++; return; }
+      if (!cols.length) return;
+      var best = cols[0];
+      cols.forEach(function (k){ if (Math.abs(k.x - c.x) < Math.abs(best.x - c.x)) best = k; });
+      out[DETECT_CLASSES[best.cls]][c.cls === 11 ? "jok" : "two"]++;
+    });
+    return out;
+  }
+
+  function renderReview(){
+    if (viewStage) viewStage.draw();
+    var b = books(), host = $("rfBooks");
+    var rows = RANKS.slice().reverse().filter(function (r){
+      var c = b[r]; return c.nat + c.jok + c.two > 0;
+    });
+    if (!rows.length){
+      host.innerHTML = '<p class="note" style="margin-top:10px">No cards yet.</p>';
+    } else {
+      var html = '<div class="rfline" style="margin-top:10px"><b>Book</b><span class="rftally">' +
+                 '<span>cards</span><span>Jokers</span><span>2s</span></span><span></span></div>';
+      rows.forEach(function (r){
+        var c = b[r];
+        html += '<div class="rfline" style="margin-top:4px"><b>' + r + '</b>' +
+                '<span class="rftally"><span>' + c.nat + '</span><span>' + c.jok +
+                '</span><span>' + c.two + '</span></span><span></span></div>';
+      });
+      host.innerHTML = html;
+    }
+    var warn = $("rfWarn"); warn.innerHTML = "";
+    function say(text, bad){
+      var li = el("li", bad ? "bad" : null, text);
+      warn.appendChild(li);
+    }
+    if (DETECTED && CARDS.length < 8){
+      say("The reader found almost nothing. That is what a photo left on its side looks like — " +
+          "go back, turn it until the rank letters are upright, and find the cards again.", true);
+    }
+    var dup = 0;
+    for (var i = 0; i < CARDS.length; i++){
+      for (var j = i + 1; j < CARDS.length; j++){
+        if (Math.hypot(CARDS[i].x - CARDS[j].x, CARDS[i].y - CARDS[j].y) < 26){ dup++; break; }
+      }
+    }
+    if (dup) say(dup + " card" + (dup === 1 ? " sits" : "s sit") + " almost on top of another. Zoom in and check.");
+    var manual = CARDS.filter(function (c){ return c.manual; }).length;
+    if (manual) say(manual + " card" + (manual === 1 ? "" : "s") + " you added by hand — ringed in gold.");
   }
 
   function apply(){
     if (!canEdit(TEAM, "books")){ toast("That team's books are locked"); return; }
-    var n = 0;
-    BANDS.forEach(function(_, i){
-      var st = READ[i];
-      if (!st || !st.rank) return;
-      var t = tally(st);
-      if (!(t.nat + t.jok + t.two)) return;
-      S.current[TEAM].books[st.rank] = { nat: t.nat, jok: t.jok, two: t.two };
+    if (!CARDS.length){ toast("Nothing to add yet"); return; }
+    var b = books(), n = 0;
+    RANKS.forEach(function (r){
+      var c = b[r];
+      if (!(c.nat + c.jok + c.two)) return;
+      S.current[TEAM].books[r] = { nat: c.nat, jok: c.jok, two: c.two };
       n++;
     });
     if (!n){ toast("Nothing to add yet"); return; }
     save(P(TEAM, "books"));
     renderAll();
     showPanel("round");
-    toast(n + " row" + (n===1?"":"s") + " added to " + S.names[TEAM]);
+    toast(n + " book" + (n === 1 ? "" : "s") + " added to " + S.names[TEAM]);
   }
 
-  /* A first pass can come from anywhere - read by eye, or produced by something
-     else entirely - and is then checked and corrected here rather than trusted.
-     Positions travel as a fraction along the strip so they survive any change of
-     resolution, band height or crop. */
-  function stripWidths(){
-    return Array.prototype.slice.call(document.querySelectorAll("#rfStrips canvas"))
-      .map(function(c,i){ return { n:i+1, width:c.width, height:c.height }; });
-  }
+  /* ---------------- wiring ---------------- */
 
-  function dumpMarks(){
-    var w = stripWidths();
-    return JSON.stringify(BANDS.map(function(_, i){
-      var st = READ[i] || {}, wd = (w[i] && w[i].width) || 1;
-      return { n: i+1, rank: st.rank || "",
-               marks: (st.marks||[]).map(function(m){
-                 return { u: +(m.x/wd).toFixed(4), kind: m.kind };
-               }) };
-    }), null, 1);
-  }
-
-  function loadMarks(text){
-    var data;
-    try { data = JSON.parse(text); }
-    catch (e){ toast("That is not valid JSON"); return; }
-    if (!Array.isArray(data)){ toast("Expected a list of strips"); return; }
-    var w = stripWidths(), applied = 0, skipped = 0;
-    data.forEach(function(row){
-      var i = (row.n|0) - 1;
-      if (i < 0 || i >= BANDS.length){ skipped++; return; }
-      var wd = (w[i] && w[i].width) || 1, hd = (w[i] && w[i].height) || 180;
-      var st = READ[i] || (READ[i] = { rank:"", marks:[] });
-      if (row.rank) st.rank = String(row.rank);
-      st.marks = (row.marks||[]).map(function(m){
-        var x = (m.x !== undefined) ? +m.x : (+m.u || 0) * wd;
-        var kind = (m.kind === "jok" || m.kind === "two") ? m.kind : "nat";
-        return { x: Math.max(0, Math.min(wd, x)),
-                 y: (m.y !== undefined) ? +m.y : hd*0.42,
-                 kind: kind };
-      });
-      applied++;
+  function teamPicker(){
+    var box = $("rfTeam"); box.innerHTML = "";
+    ["A","B"].forEach(function (t){
+      var b = el("button", null, S.names[t]);
+      b.setAttribute("aria-pressed", TEAM === t ? "true" : "false");
+      b.onclick = function (){ TEAM = t; teamPicker(); };
+      box.appendChild(b);
     });
-    draw();
-    toast("Loaded " + applied + " strip" + (applied===1?"":"s") +
-          (skipped ? ", " + skipped + " skipped" : "") + " — check them");
-  }
-
-  function copy(text, what){
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){ toast(what + " copied"); },
-                                               function(){ toast("Could not copy"); });
-    } else { toast("Clipboard not available here"); }
-  }
-
-  /* Both downloads stitch a list of canvases into one image the same way -
-     shared here so the blank version can't drift out of sync with the
-     stamped one (same row heights, same gaps, same background). */
-  function stitchAndDownload(cvs, filename){
-    if (!cvs.length) return;
-    var w = Math.max.apply(null, cvs.map(function(c){ return c.width; }));
-    var h = cvs.reduce(function(a,c){ return a + c.height + 8; }, 0);
-    var out = document.createElement("canvas"); out.width = w; out.height = h;
-    var g = out.getContext("2d");
-    g.fillStyle = "#444"; g.fillRect(0,0,w,h);
-    var y = 0;
-    cvs.forEach(function(c){ g.drawImage(c, 0, y); y += c.height + 8; });
-    out.toBlob(function(b){
-      var u = URL.createObjectURL(b), a = document.createElement("a");
-      a.href = u; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(u); }, 1000);
-    });
-  }
-
-  /* The live strip canvases already have stamps painted onto them, so this
-     is just what is on screen right now, stitched into one file. */
-  function download(){
-    var cvs = Array.prototype.slice.call(document.querySelectorAll("#rfStrips canvas"));
-    stitchAndDownload(cvs, "strips-stamped.png");
-  }
-
-  /* A parallel copy with no stamps at all, for marking ground truth
-     independently - drawn fresh via the same drawStripImage used for the
-     live display, never touched by paintMarks, so there is no way for a
-     stamp to leak into it even if a strip has already been tapped. */
-  function downloadBlank(){
-    if (!BANDS.length) return;
-    var H = bh(), lin = lead();
-    var cvs = BANDS.map(function(band){ return drawStripImage(geom(band), H, lin); });
-    stitchAndDownload(cvs, "strips-blank.png");
   }
 
   function on(id, ev, fn){
-    var e = $(id);
-    if (!e){ console.warn("reader: no element #" + id); return; }
-    e.addEventListener(ev, fn);
+    var n = $(id); if (n) n.addEventListener(ev, fn);
+  }
+
+  function loadPhoto(file){
+    if (!file) return Promise.resolve(false);
+    return createImageBitmap(file).then(function (bm){
+      IMG = bm;
+      CARDS = []; UNDO = []; DETECTED = false;
+      CROP = { top: 0, bottom: 0 };
+      /* A hand photographed from the side of the table comes out portrait with
+         the indices lying over; landscape ones are usually already upright.
+         A guess, not a guarantee - the person confirms before anything is read. */
+      ROT = bm.height > bm.width ? 90 : 0;
+      buildRotated();
+      showFrame();
+      return true;
+    });
   }
 
   function init(){
     teamPicker();
-    modeBar();
-    on("rfPick","click", function(){ $("rfFile").click(); });
-    on("rfFile","change", function(){
-      var f = this.files && this.files[0]; this.value = "";
-      if (!f) return;
-      createImageBitmap(f).then(function(bm){
-        IMG = bm; AXIS = 1; VIEW.canvas = null;
-        TEMPLATES = {}; TEMPLATE_Y = {};
-        $("rfRot").disabled = false; $("rfRedo").disabled = false;
-        $("rfStageSheet").hidden = false;
-        detect();
+    padBar();                 // built once; the sheet it lives in is what hides
+    on("rfPick", "click", function (){ $("rfFile").click(); });
+    on("rfPickAny", "click", function (){ $("rfFileAny").click(); });
+    ["rfFile","rfFileAny"].forEach(function (id){
+      on(id, "change", function (){
+        var f = this.files && this.files[0];
+        this.value = "";
+        loadPhoto(f);
       });
     });
-    on("rfRot","click", function(){ AXIS = AXIS ? 0 : 1; VIEW.canvas = null; detect(); });
-    on("rfRedo","click", detect);
-    on("rfPrev","click", function(){ if (CUR > 0){ CUR--; draw(); } });
-    on("rfNext","click", advance);
-    on("rfIns","click", function(){
-      if (!IMG) return;
-      var cur = BANDS[CUR];
-      BANDS.splice(CUR+1, 0, { pos: Math.round(cur.pos + typicalGap()*0.5), ang: cur.ang });
-      READ = {}; CUR++; draw();
-    });
-    on("rfDel","click", function(){
-      if (BANDS.length <= 1) return;
-      BANDS.splice(CUR,1); READ = {};
-      if (CUR >= BANDS.length) CUR = BANDS.length-1;
-      draw();
-    });
-    ["rfBh","rfLead","rfSh"].forEach(function(id){ on(id,"change", draw); });
-    on("rfFlip","change", function(){ FLIP = this.checked; draw(); });
-    on("rfApply","click", apply);
-    on("rfDetect","click", detectAll);
-    on("rfSave","click", download);
-    on("rfBlank","click", downloadBlank);
-    on("rfInfo","click", function(){ copy(JSON.stringify(stripWidths()), "Strip sizes"); });
-    on("rfLoad","click", function(){ loadMarks($("rfPaste").value); });
-    on("rfDump","click", function(){
-      var t = dumpMarks();
-      $("rfPaste").value = t;
-      copy(t, "Stamps");
+    on("rfTurnL", "click", function (){ turn(-1); });
+    on("rfTurnR", "click", function (){ turn(1); });
+    on("rfFrameOk", "click", runDetect);
+    on("rfBack", "click", showFrame);
+    on("rfApply", "click", apply);
+    window.addEventListener("resize", function (){
+      if (frameStage && !$("rfFrameSheet").hidden){ frameStage.resize(frameStage.canvas.clientHeight); frameStage.clampView(); frameStage.draw(); }
+      if (viewStage && !$("rfReviewSheet").hidden){ viewStage.resize(viewStage.canvas.clientHeight); viewStage.clampView(); viewStage.draw(); }
     });
   }
 
-  return { init: init, refresh: function(){ teamPicker(); } };
+  function shown(){
+    [frameStage, viewStage].forEach(function (st){
+      if (!st || !st.pending) return;
+      if (st.resize(st.pending)){ st.fit(); st.draw(); }
+    });
+  }
+
+  return {
+    init: init,
+    refresh: function (){ teamPicker(); },
+    shown: shown,
+    /* for the harness: drive the reader without a file dialog or a finger */
+    __test: {
+      load: loadPhoto,
+      turnTo: function (deg){ while (ROT !== ((deg % 360) + 360) % 360) turn(1); },
+      setCrop: function (t, b){ CROP.top = t; CROP.bottom = b; showFrame(); },
+      detect: runDetect,
+      state: function (){
+        return { rot: ROT, crop: { top: CROP.top, bottom: CROP.bottom },
+                 frame: { w: frameW(), h: frameH() },
+                 cards: CARDS.map(function (c){
+                   return { x: c.x, y: c.y, cls: c.cls, kind: DETECT_CLASSES[c.cls],
+                            conf: c.conf, manual: c.manual };
+                 }),
+                 books: books(), detected: DETECTED, team: TEAM };
+      },
+      /* Zooms first, the way a finger has to: while the whole frame fits on
+         screen there is nothing to pan, so the crosshair cannot leave the
+         middle however hard the test pushes it. */
+      centreOn: function (x, y, z){
+        viewStage.view.z = viewStage.clampZoom(z || 1);
+        var s = viewStage.size();
+        viewStage.view.ox = x - (s.w / 2) / viewStage.view.z;
+        viewStage.view.oy = y - (s.h / 2) / viewStage.view.z;
+        viewStage.clampView(); viewStage.draw();
+      },
+      crosshair: function (){ return viewStage.centreImage(); },
+      place: place, takeOut: takeOut, undo: undoOne, apply: apply,
+      classes: DETECT_CLASSES, merge: DETECT_MERGE, model: DETECT_MODEL
+    }
+  };
 })();
 
 /* ---------- wiring ---------- */

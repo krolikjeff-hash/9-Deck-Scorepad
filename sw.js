@@ -8,7 +8,7 @@
  * Bump VERSION on every deploy. The old cache is dropped on activate, so a stale
  * shell can never outlive a release.
  */
-const VERSION = "9deck-2026-09-12a";
+const VERSION = "9deck-2026-09-13a";
 const SHELL = VERSION + "-shell";
 const RUNTIME = VERSION + "-runtime";
 /* The card detector's model (12 MB) and its runtime are cached here, in a
@@ -16,7 +16,7 @@ const RUNTIME = VERSION + "-runtime";
    the model again. A retrained model gets a new file name, which is a new
    cache entry; stale ones are dropped on activate. */
 const MODEL = "9deck-model";
-const MODEL_FILES = ["glyphs-v1.onnx"];
+const MODEL_FILES = ["glyphs-v2.onnx"];
 
 const ASSETS = [
   "./",
