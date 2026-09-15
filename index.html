@@ -140,7 +140,27 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 .divline{grid-column:1/-1;height:1px;background:var(--stock-edge);margin:2px 0}
 
 /* ---------- leftovers ---------- */
-.sheethead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheethead{display:flex;align-items:center;gap:10px}
+/* Both the claim badge and the camera button want to sit at the right-hand end.
+   Giving each margin-left:auto does that whether one is present or both: the
+   first takes the slack, the second finds none left and tucks in beside it. */
+.sheethead > span,.sheethead > .camera{margin-left:auto}
+.sheethead > .rfwho{margin-left:0}
+.camera{font:inherit;font-size:12px;font-family:var(--font-body);font-weight:600;
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer;
+  border:1px solid var(--stock-edge);background:var(--stock-sunk);color:var(--ink);
+  border-radius:8px;padding:5px 10px;line-height:1}
+.camera:hover{border-color:var(--ink-soft)}
+.camera:disabled{opacity:.4;cursor:default}
+/* Drawn rather than set as an emoji: a font that has no camera glyph would
+   leave a button with nothing in it, and on a phone the label is the first
+   thing to go. */
+.camera svg{width:15px;height:15px;flex:none}
+.camera svg path{fill:none;stroke:currentColor;stroke-width:1.9;
+  stroke-linejoin:round}
+.camera svg circle{fill:none;stroke:currentColor;stroke-width:1.9}
+@media (max-width:360px){.camera span{position:absolute;width:1px;height:1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 .claim{font-size:12px;font-weight:400;font-family:var(--font-body);
   border:1px solid var(--stock-edge);background:var(--stock-sunk);border-radius:8px;
   padding:4px 10px;color:var(--ink-soft)}
@@ -236,6 +256,12 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 .btn{border:1px solid var(--stock-edge);background:var(--stock-sunk);border-radius:5px;
   padding:10px 14px;font-size:14px;color:var(--ink);text-decoration:none;display:inline-block}
 .btn.warn{color:var(--red);border-color:#E8C9CD}
+/* `go` marks the one button that moves each step forward. It has been on the
+   markup since part 2 with no rule behind it, so every step offered two or
+   three identical-looking buttons and left the person to work out which one
+   was the way on. */
+.btn.go{background:var(--brass);border-color:var(--brass);color:#FFF9E8;font-weight:700}
+.btn.go:disabled{opacity:.45}
 .banner{background:#FBE7E7;color:#7C1220;border-radius:5px;padding:9px 11px;font-size:13px;
   margin-bottom:12px;line-height:1.35}
 .banner.calm{background:rgba(246,241,228,.07);color:rgba(246,241,228,.8);border:1px solid var(--baize-line)}
@@ -315,7 +341,6 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
       <nav class="tabs" role="tablist">
         <button class="tab" role="tab" id="tab-round" aria-selected="true" data-panel="round">Round</button>
         <button class="tab" role="tab" id="tab-history" aria-selected="false" data-panel="history">History</button>
-        <button class="tab" role="tab" id="tab-photo" aria-selected="false" data-panel="photo">Photo</button>
         <button class="tab" role="tab" id="tab-setup" aria-selected="false" data-panel="setup">Setup</button>
       </nav>
     </div>
@@ -331,13 +356,13 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
     <div class="teamswitch" id="teamswitch"></div>
 
     <div class="sheet">
-      <h2 class="sheethead">Books on the table<span id="booksclaim"></span></h2>
+      <h2 class="sheethead">Books on the table<span id="booksclaim"></span><button class="camera" id="rfOpenBooks" title="Read the books from a photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3l-1.2 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.8L15 3z"/><circle cx="12" cy="12.5" r="3.6"/></svg><span>Photo</span></button></h2>
       <div class="grid" id="booksgrid"></div>
       <ul class="warns" id="bookwarns"></ul>
     </div>
 
     <div class="sheet">
-      <h2 class="sheethead">Cards left unplayed<span id="leftclaim"></span></h2>
+      <h2 class="sheethead">Cards left unplayed<span id="leftclaim"></span><button class="camera" id="rfOpenLeft" title="Count the unplayed cards from a photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3l-1.2 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.8L15 3z"/><circle cx="12" cy="12.5" r="3.6"/></svg><span>Photo</span></button></h2>
       <p class="note">Every card still unplayed when the hand ends, across everyone on this team. Grouped by point value rather than rank.</p>
       <div class="leftgrid" id="leftgrid"></div>
     </div>
@@ -363,10 +388,12 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 
 
   <!-- PHOTO -->
-  <section class="panel" id="panel-photo" role="tabpanel" aria-labelledby="tab-photo">
+  <!-- No tab of its own: opened from the camera button on whichever table of
+       the round is being filled in, and left by applying or by Back. -->
+  <section class="panel" id="panel-photo" role="tabpanel" aria-label="Read from a photo">
     <div class="sheet">
-      <h2>Read a hand from a photo</h2>
-      <p class="note">One photo of one team's books, taken from above with the whole hand in frame. The reader finds every card's corner index; you check it, fix anything it got wrong, and add the counts to the round.</p>
+      <h2 class="sheethead"><span class="rfwho" id="rfWho">Read from a photo</span><button class="camera" id="rfLeave">&#8592;<span>Back to the round</span></button></h2>
+      <p class="note" id="rfLede">One photo of one team's books, taken from above with the whole hand in frame. The reader finds every card's corner index; you check it, fix anything it got wrong, and add the counts to the round.</p>
       <div class="btnrow">
         <input type="file" id="rfFile" accept="image/*" capture="environment" hidden>
         <button class="btn go" id="rfPick">Take photo</button>
@@ -374,14 +401,14 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
         <button class="btn" id="rfPickAny">Choose a photo</button>
       </div>
       <div class="btnrow" style="margin-top:10px">
-        <span class="rfteam">For</span>
-        <div class="whoami" id="rfTeam" style="grid-template-columns:1fr 1fr;max-width:280px"></div>
+        <span class="rfteam">Reading</span>
+        <div class="whoami" id="rfMode" style="grid-template-columns:1fr 1fr;max-width:280px"></div>
       </div>
     </div>
 
     <div class="sheet" id="rfFrameSheet" hidden>
       <h2 class="sheethead">Turn it upright, then trim</h2>
-      <p class="note">Turn the photo until the rank letters in the card corners are the right way up. This one matters: the reader cannot see a sideways glyph at all, and a photo left on its side finds nothing rather than finding it badly. Then drag the two yellow bars in to cut away everything above and below the cards.</p>
+      <p class="note">Turn the photo until the rank letters in the card corners are the right way up. This one matters: the reader cannot see a sideways glyph at all, and a photo left on its side finds nothing rather than finding it badly. Then drag the four yellow bars in to cut away everything around the cards. Trimming the sides matters as much as the top: a stray card lying past the last book gets read, and being read it lands in some book or other.</p>
       <div class="btnrow">
         <button class="btn" id="rfTurnL">&#8634; Turn left</button>
         <button class="btn" id="rfTurnR">&#8635; Turn right</button>
@@ -492,7 +519,7 @@ var store = (function () {
 
 var MARK_SVG = "<svg class=\"mark\" width=\"53\" height=\"84\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
 var MARK9_SVG = "<svg class=\"mark\" width=\"50\" height=\"79\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
-var APP_VERSION = "2026-09-14a";
+var APP_VERSION = "2026-09-15b";
 var KEY = "ninedecks.v1";
 var LKEY = "ninedecks.local.v1";
 
@@ -516,7 +543,9 @@ var DOC_PATH = ["nine-decks", "current"];
    being recomputed from shared state every time the other scorer taps something. */
 var L = (function () {
   // team: "A" | "B" | null (both).  section: "books" | "left" | null (both).
-  var base = { team: null, section: null, strict: false, tab: "round", view: "A" };
+  // photoMode: which half of the count the Photo tab reads, "books" | "unplayed"
+  var base = { team: null, section: null, strict: false, tab: "round", view: "A",
+               photoMode: "books" };
   try {
     var got = Object.assign(base, JSON.parse(store.get(LKEY) || "{}"));
     if (got.myTeam) { got.team = got.myTeam === "both" ? null : got.myTeam; delete got.myTeam; }
@@ -1238,6 +1267,22 @@ function renderTally() {
   }
 }
 
+/* The camera follows the same lock as the steppers beneath it. Reading a photo
+   into a section this phone may not edit would only produce a refusal at the
+   Apply button, three steps later. */
+function renderCameras() {
+  [["rfOpenBooks", "books"], ["rfOpenLeft", "left"]].forEach(function (p) {
+    var b = $(p[0]);
+    if (!b) return;
+    var locked = !canEdit(L.view, p[1]);
+    b.disabled = locked;
+    b.title = locked
+      ? S.names[L.view] + " is locked on this phone"
+      : (p[1] === "books" ? "Read the books from a photo"
+                          : "Count the unplayed cards from a photo");
+  });
+}
+
 function renderRound() {
   renderStoreWarn();
   renderSync();
@@ -1247,6 +1292,7 @@ function renderRound() {
   renderOut();
   renderClaim("booksclaim", "books");
   renderClaim("leftclaim", "left");
+  renderCameras();
   renderWarnings();
   renderFinish();
   renderTally();
@@ -1487,10 +1533,18 @@ function exportCsv() {
 
 /* ---------- tabs ---------- */
 function showPanel(name) {
-  L.tab = name; saveLocal();
+  /* The photo page is not a tab any more - it is opened from whichever table on
+     the round is about to be filled in, and left again by applying or backing
+     out. So it is never what a reload lands on: remembering it would restore a
+     page with no photo in it, reached by no button the person pressed. */
+  L.tab = (name === "photo") ? "round" : name; saveLocal();
+  /* Reading a photo is a step inside filling in the round, so the Round tab
+     stays lit while it is open rather than leaving no tab selected at all. */
+  var lit = (name === "photo") ? "round" : name;
   ["round","history","photo","setup"].forEach(function (p) {
     $("panel-" + p).classList.toggle("on", p === name);
-    $("tab-" + p).setAttribute("aria-selected", p === name ? "true" : "false");
+    var tab = $("tab-" + p);
+    if (tab) tab.setAttribute("aria-selected", p === lit ? "true" : "false");
   });
   document.querySelector(".tally").style.display = (name === "round") ? "" : "none";
   window.scrollTo(0, 0);
@@ -1540,20 +1594,30 @@ var reader = (function () {
   var IMG = null;                   // the photo as the browser decoded it (EXIF applied)
   var ROT = 0;                      // clockwise degrees applied for viewing: 0|90|180|270
   var ROTCV = null;                 // the photo rotated, before cropping
-  var CROP = { top: 0, bottom: 0 }; // in rotated-photo pixels
+  var CROP = { top: 0, bottom: 0, left: 0, right: 0 };   // in rotated-photo pixels
   var TEAM = "A";
+  /* "books" or "unplayed". The detector cannot tell them apart reliably - a
+     short book looks like a short fan - so the person says which, and the phone
+     remembers: whoever is counting the unplayed cards is usually still counting
+     them next round. */
+  var MODE = (L.photoMode === "unplayed") ? "unplayed" : "books";
 
   /* Every card the reader believes is on the table, in CROPPED frame pixels:
      { x, y, cls, conf, manual }. cls indexes DETECT_CLASSES. */
   var CARDS = [];
   var UNDO = [];
   var DETECTED = false;
+  var GLYPH = 90;                   // this photo's index width, measured at read time
+  var READ = null;                  // what the scale search decided, for the test hooks
+  var READS = 0;                    // completed reads, so a re-read is observable
 
   function rotW(){ return ROTCV ? ROTCV.width : 0; }
   function rotH(){ return ROTCV ? ROTCV.height : 0; }
   function workTop(){ return CROP.top; }
   function workBot(){ return rotH() - CROP.bottom; }
-  function frameW(){ return rotW(); }
+  function workLeft(){ return CROP.left; }
+  function workRight(){ return rotW() - CROP.right; }
+  function frameW(){ return Math.max(1, workRight() - workLeft()); }
   function frameH(){ return Math.max(1, workBot() - workTop()); }
   function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
 
@@ -1576,7 +1640,7 @@ var reader = (function () {
   function frameCanvas(){
     var cv = document.createElement("canvas");
     cv.width = frameW(); cv.height = frameH();
-    cv.getContext("2d").drawImage(ROTCV, 0, workTop(), frameW(), frameH(),
+    cv.getContext("2d").drawImage(ROTCV, workLeft(), workTop(), frameW(), frameH(),
                                   0, 0, frameW(), frameH());
     return cv;
   }
@@ -1771,16 +1835,28 @@ var reader = (function () {
         bounds: function(){ return { x: 0, y: 0, w: rotW(), h: rotH() }; },
         draw: drawFrame,
         onDown: function(img, p){
-          // grab whichever crop bar is nearer, but only if the touch is near one
-          var t = frameStage.toScreen(0, workTop()).y, b = frameStage.toScreen(0, workBot()).y;
-          var dt = Math.abs(p.y - t), db = Math.abs(p.y - b);
-          cropGrab = (Math.min(dt, db) <= 44) ? (dt <= db ? "top" : "bottom") : null;
+          /* Grab whichever bar is nearest, and only if the touch is near one.
+             All four are candidates, so the nearest wins outright rather than
+             the horizontal pair always beating the vertical pair. */
+          var t = frameStage.toScreen(0, workTop()).y,  b = frameStage.toScreen(0, workBot()).y;
+          var l = frameStage.toScreen(workLeft(), 0).x, r = frameStage.toScreen(workRight(), 0).x;
+          var cand = [["top", Math.abs(p.y - t)], ["bottom", Math.abs(p.y - b)],
+                      ["left", Math.abs(p.x - l)], ["right", Math.abs(p.x - r)]];
+          cand.sort(function (u, v){ return u[1] - v[1]; });
+          cropGrab = cand[0][1] <= 44 ? cand[0][0] : null;
         },
         onDrag: function(img){
           if (!cropGrab) return false;
-          var y = clamp(img.y, 0, rotH());
-          if (cropGrab === "top") CROP.top = clamp(Math.round(y), 0, rotH() - CROP.bottom - 80);
-          else CROP.bottom = clamp(Math.round(rotH() - y), 0, rotH() - CROP.top - 80);
+          // 80px of frame always survives, so a bar cannot be dragged past its partner
+          if (cropGrab === "top" || cropGrab === "bottom"){
+            var y = clamp(img.y, 0, rotH());
+            if (cropGrab === "top") CROP.top = clamp(Math.round(y), 0, rotH() - CROP.bottom - 80);
+            else CROP.bottom = clamp(Math.round(rotH() - y), 0, rotH() - CROP.top - 80);
+          } else {
+            var x = clamp(img.x, 0, rotW());
+            if (cropGrab === "left") CROP.left = clamp(Math.round(x), 0, rotW() - CROP.right - 80);
+            else CROP.right = clamp(Math.round(rotW() - x), 0, rotW() - CROP.left - 80);
+          }
           return true;
         },
         onUp: function(){ cropGrab = null; }
@@ -1796,27 +1872,46 @@ var reader = (function () {
     if (!ROTCV) return;
     st.blit(ROTCV, 0, 0, rotW(), rotH());
     var ctx = st.ctx, s = st.size();
-    var t = st.toScreen(0, workTop()).y, b = st.toScreen(0, workBot()).y;
+    var t = st.toScreen(0, workTop()).y,  b = st.toScreen(0, workBot()).y;
+    var l = st.toScreen(workLeft(), 0).x, r = st.toScreen(workRight(), 0).x;
     ctx.fillStyle = "rgba(11,35,24,.72)";
-    if (t > 0) ctx.fillRect(0, 0, s.w, Math.min(t, s.h));
+    if (t > 0)   ctx.fillRect(0, 0, s.w, Math.min(t, s.h));
     if (b < s.h) ctx.fillRect(0, Math.max(b, 0), s.w, s.h - Math.max(b, 0));
+    // the side shades only cover the band between the bars, so corners are not
+    // painted twice and the kept region reads as one clear rectangle
+    var ky = Math.max(t, 0), kh = Math.min(b, s.h) - ky;
+    if (kh > 0){
+      if (l > 0)   ctx.fillRect(0, ky, Math.min(l, s.w), kh);
+      if (r < s.w) ctx.fillRect(Math.max(r, 0), ky, s.w - Math.max(r, 0), kh);
+    }
     ctx.strokeStyle = "#D9A441"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(0, t); ctx.lineTo(s.w, t); ctx.moveTo(0, b); ctx.lineTo(s.w, b); ctx.stroke();
-    [t, b].forEach(function (y){
+    ctx.beginPath();
+    ctx.moveTo(0, t); ctx.lineTo(s.w, t);
+    ctx.moveTo(0, b); ctx.lineTo(s.w, b);
+    ctx.moveTo(l, 0); ctx.lineTo(l, s.h);
+    ctx.moveTo(r, 0); ctx.lineTo(r, s.h);
+    ctx.stroke();
+    ctx.font = "bold 11px -apple-system,Segoe UI,sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    var my = clamp((ky + Math.min(b, s.h)) / 2, 20, s.h - 20);
+    [[s.w / 2, t, 52, 18], [s.w / 2, b, 52, 18],
+     [l, my, 18, 52], [r, my, 18, 52]].forEach(function (g){
       ctx.fillStyle = "#D9A441";
-      ctx.fillRect(s.w / 2 - 26, y - 9, 52, 18);
+      ctx.fillRect(g[0] - g[2] / 2, g[1] - g[3] / 2, g[2], g[3]);
       ctx.fillStyle = "#0b2318";
-      ctx.font = "bold 11px -apple-system,Segoe UI,sans-serif";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText("drag", s.w / 2, y);
-      ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+      if (g[2] > g[3]) ctx.fillText("drag", g[0], g[1]);
+      else {
+        ctx.save(); ctx.translate(g[0], g[1]); ctx.rotate(-Math.PI / 2);
+        ctx.fillText("drag", 0, 0); ctx.restore();
+      }
     });
+    ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
   }
 
   function turn(dir){
     if (!IMG) return;
     ROT = (ROT + (dir > 0 ? 90 : 270)) % 360;
-    CROP = { top: 0, bottom: 0 };     // a crop measured on the old turn means nothing
+    CROP = { top: 0, bottom: 0, left: 0, right: 0 };     // a crop measured on the old turn means nothing
     CARDS = []; UNDO = []; DETECTED = false;
     buildRotated();
     showFrame();
@@ -1824,18 +1919,58 @@ var reader = (function () {
 
   /* ---------------- the detector ---------------- */
 
-  var DETECT_MODEL   = "./glyphs-v2.onnx";    // rename on retrain: the cache is keyed by URL
+  var DETECT_MODEL   = "./glyphs-v3.onnx";    // rename on retrain: the cache is keyed by URL
   var DETECT_ORT     = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
-  var DETECT_CLASSES = ["A","K","Q","J","10","9","8","7","6","5","4","joker","two"];
+  /* The first thirteen are v2's, unchanged and in that order; the threes are
+     appended, so this list still decodes a v2 model. A three cannot be in a
+     book, so the two new classes never fire on a books photo. */
+  var DETECT_CLASSES = ["A","K","Q","J","10","9","8","7","6","5","4","joker","two","3red","3black"];
+  var JOKER_CLS = 11, TWO_CLS = 12, RED3_CLS = 13, BLACK3_CLS = 14;
+  var NATURALS  = 11;             // classes below this can go in a book
   var DETECT_CONF    = 0.5;
   var DETECT_IOU     = 0.7;       // ultralytics' own NMS default
   var DETECT_TILE = 640, DETECT_OVERLAP = 160, DETECT_PAD = 114;
-  /* Two detections closer than this are the same card seen in two overlapping
-     tiles. Raised from 30 after round 8 left a spurious box wedged 36px between
-     two real cards; 40 removes it and is clean on both held-out rounds. The
-     ceiling is 46px, the closest two real cards have ever been in eight rounds
-     of ground truth, so this cannot merge two genuine cards. */
-  var DETECT_MERGE   = 40;
+
+  /* Reading a photo of unknown provenance - see PART3_NOTES §27.
+
+     Everything below is a fraction of the GLYPH WIDTH, never a pixel count. A
+     phone with a bigger sensor, or a photo taken from closer in, puts the same
+     corner index at a different pixel size, and every constant that was a pixel
+     count was really a statement about card geometry at one camera distance.
+
+     The frame is first resampled so its width is CANON_W, which is what every
+     photo the model was trained on already had. What is left varying after that
+     is framing, and the ladder is what covers it. */
+  var CANON_W     = 4000;
+  var LADDER      = [1.0, 0.72, 0.52, 0.37, 0.27, 0.19];
+  var PROBE_FRAC  = 0.34;         // share of the frame width used to choose a factor
+  var PROBE_CONF  = 0.85;         // only detections this confident vote for a factor
+  var READ_GLYPH  = 110;          // aim here: the middle of what was trained
+  /* Two detections this close are the same card, seen twice: in two overlapping
+     tiles, or - on a books photo - as a Joker's tall monogram read once whole
+     and once at its top. The two flows want different numbers and each keeps the
+     one that was validated for it.
+
+     Both are written as pixels-at-a-90px-glyph, because that is how they were
+     measured. Books keep v2's 40, which scored 148/148; round 8's King column
+     has genuine gaps of 69 to 165px and one duplicate at 37, and the closest two
+     real cards have ever come in eight rounds is 46, so 40 sits between them.
+     A fan comes down to 34, because a 32-card hand packs its indices 54px apart
+     and 40 swallows a real card. What makes that safe is the pip rule below,
+     which a fan can use and a column cannot. */
+  var MERGE_BOOKS = 40 / 90, MERGE_FAN = 34 / 90;
+  /* And a card's pip sits directly under its rank, which the model reads as a
+     second glyph at 0.5-0.6 against a real index's 0.95. That cost 13 false
+     positives and 570 points on the unplayed hands before it was found.
+
+     UNPLAYED ONLY, and the reason is geometry. In a fan the next card is
+     displaced sideways, so "directly below" means a pip and nothing else. A
+     book is a COLUMN: its cards sit one under another, as close as 46px in
+     eight rounds of ground truth, which is exactly where a pip sits. Round 8
+     has a Joker 32px below a King - this rule swallowed it, and a book went
+     from dirty to clean, which is worth 400 points. Books merge on distance
+     alone, the way v2 did when it scored 148/148. */
+  var PIP_X = 0.25, PIP_Y = 0.55;
   var detectSession = null, detectLoading = null;
 
   function loadScript(src){
@@ -1868,7 +2003,8 @@ var reader = (function () {
      now runs was checked again the same way - 178 of 178 detections, worst
      position difference 0.3px. It is the one part of this file that has been
      verified against another implementation, so it is copied, not rewritten. */
-  function detectTile(sess, tile){
+  function detectTile(sess, tile, conf){
+    conf = (conf === undefined) ? DETECT_CONF : conf;
     var w = tile.width, h = tile.height, S = DETECT_TILE;
     var r = Math.min(S / w, S / h);
     var nw = Math.round(w * r), nh = Math.round(h * r);
@@ -1895,7 +2031,7 @@ var reader = (function () {
           var sc = data[(4 + c) * anchors + a];
           if (sc > best){ best = sc; bc = c; }
         }
-        if (best < DETECT_CONF) continue;
+        if (best < conf) continue;
         boxes.push({ cx: data[a], cy: data[anchors + a], w: data[2 * anchors + a],
                      h: data[3 * anchors + a], cls: bc, conf: best });
       }
@@ -1912,7 +2048,10 @@ var reader = (function () {
         kept.push(b);
       });
       return kept.map(function (b){
-        return { x: (b.cx - left) / r, y: (b.cy - top) / r, cls: b.cls, conf: b.conf };
+        // w travels with every detection: the merge, and the glyph estimate it
+        // needs, are both measured in glyph widths rather than pixels
+        return { x: (b.cx - left) / r, y: (b.cy - top) / r, w: b.w / r,
+                 cls: b.cls, conf: b.conf };
       });
     });
   }
@@ -1924,36 +2063,131 @@ var reader = (function () {
     return out;
   }
 
-  /* The whole frame -> cards in frame pixels. Tiles two-dimensionally, because a
-     photo is not a row. */
-  function detectFrame(sess, frame, note){
-    var W = frame.width, H = frame.height, stride = DETECT_TILE - DETECT_OVERLAP;
+  /* Scale a canvas by `f`. Never upsamples past 1.0 - that invents detail the
+     camera did not record - and the caller never asks it to. */
+  function scaled(src, f){
+    if (Math.abs(f - 1) < 1e-9) return src;
+    var cv = document.createElement("canvas");
+    cv.width  = Math.max(1, Math.round(src.width  * f));
+    cv.height = Math.max(1, Math.round(src.height * f));
+    var g = cv.getContext("2d");
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
+    g.drawImage(src, 0, 0, cv.width, cv.height);
+    return cv;
+  }
+
+  function median(v){
+    if (!v.length) return 0;
+    var a = v.slice().sort(function (p, q){ return p - q; });
+    return a[a.length >> 1];
+  }
+
+  /* Drop a weaker detection that is close to a stronger one, or sits directly
+     below it - which is where a card's pip sits. Both tests in glyph widths. */
+  function isWild(c){ return c === JOKER_CLS || c === TWO_CLS; }
+
+  function mergeCards(all, glyph, pips){
+    var radius = (pips ? MERGE_FAN : MERGE_BOOKS) * glyph;
+    all = all.slice().sort(function (p, q){ return q.conf - p.conf; });
+    var kept = [];
+    all.forEach(function (p){
+      for (var i = 0; i < kept.length; i++){
+        var dx = p.x - kept[i].x, dy = p.y - kept[i].y;
+        var near = Math.hypot(dx, dy) <= radius ||
+                   (pips && Math.abs(dx) <= PIP_X * glyph && dy > 0 && dy <= PIP_Y * glyph);
+        if (!near) continue;
+        /* Same card, read twice. Confidence decides, with one exception: a wild
+           beats a natural. A Joker's index is a tall monogram and the model reads
+           its top half as a King at 0.94 against the Joker's own 0.93 - round 8
+           has exactly that, and on confidence alone the artefact wins and the
+           real Joker is thrown away. The reverse has never happened: across 486
+           unplayed cards and 89 books cards there is not one spurious wild. And
+           the asymmetry is the one the scorer already singles out, because a wild
+           counted as a natural turns a dirty book clean. */
+        if (isWild(p.cls) && !isWild(kept[i].cls)) kept[i] = p;
+        return;
+      }
+      kept.push(p);
+    });
+    return kept;
+  }
+
+  /* One pass over a canvas: tile it, detect, return hits in that canvas's own
+     pixels. Two-dimensional, because a photo is not a row. */
+  function detectPass(sess, cv, conf, note, label){
+    var W = cv.width, H = cv.height, stride = DETECT_TILE - DETECT_OVERLAP;
     var xs = tileStarts(W, DETECT_TILE, stride), ys = tileStarts(H, DETECT_TILE, stride);
     var jobs = [];
     ys.forEach(function (y0){ xs.forEach(function (x0){ jobs.push([x0, y0]); }); });
     var all = [], done = 0;
     return jobs.reduce(function (chain, j){
       return chain.then(function (){
-        var cv = document.createElement("canvas");
+        var t = document.createElement("canvas");
         var w = Math.min(DETECT_TILE, W - j[0]), h = Math.min(DETECT_TILE, H - j[1]);
-        cv.width = w; cv.height = h;
-        cv.getContext("2d").drawImage(frame, j[0], j[1], w, h, 0, 0, w, h);
-        return detectTile(sess, cv).then(function (hits){
-          hits.forEach(function (d){ all.push({ x: d.x + j[0], y: d.y + j[1], cls: d.cls, conf: d.conf }); });
+        t.width = w; t.height = h;
+        t.getContext("2d").drawImage(cv, j[0], j[1], w, h, 0, 0, w, h);
+        return detectTile(sess, t, conf).then(function (hits){
+          hits.forEach(function (d){
+            all.push({ x: d.x + j[0], y: d.y + j[1], w: d.w, cls: d.cls, conf: d.conf });
+          });
           done++;
-          if (note) note("Reading… " + done + " of " + jobs.length);
+          if (note) note(label + " " + done + " of " + jobs.length);
         });
       });
-    }, Promise.resolve()).then(function (){
-      all.sort(function (p, q){ return q.conf - p.conf; });
-      var kept = [];
-      all.forEach(function (p){
-        for (var i = 0; i < kept.length; i++){
-          if (Math.hypot(p.x - kept[i].x, p.y - kept[i].y) <= DETECT_MERGE) return;
-        }
-        kept.push(p);
+    }, Promise.resolve()).then(function (){ return all; });
+  }
+
+  /* The whole frame -> cards in frame pixels, knowing nothing about the photo.
+
+     Normalise the frame to CANON_W, choose a resample factor by trying a ladder
+     of them on one fixed slice of it, then read once at the winner. The cards
+     come back in the frame's own pixels, so nothing outside this function has to
+     know the normalisation happened. See PART3_NOTES §27. */
+  function readFrame(sess, frame, note, pips){
+    var n = CANON_W / frame.width;
+    var base = scaled(frame, n);
+    var px = Math.round(base.width * (0.5 - PROBE_FRAC / 2));
+    var pw = Math.round(base.width * PROBE_FRAC);
+    var probe = document.createElement("canvas");
+    probe.width = pw; probe.height = base.height;
+    probe.getContext("2d").drawImage(base, px, 0, pw, base.height, 0, 0, pw, base.height);
+
+    var votes = [];
+    return LADDER.reduce(function (chain, f, i){
+      return chain.then(function (){
+        return detectPass(sess, scaled(probe, f), PROBE_CONF, note,
+                          "Sizing up the photo (" + (i + 1) + " of " + LADDER.length + ")…")
+          .then(function (d){
+            var g = d.length ? median(d.map(function (p){ return p.w; })) : 90;
+            votes.push({ f: f, n: mergeCards(d, g, pips).length, glyph: g });
+          });
       });
-      return kept;
+    }, Promise.resolve()).then(function (){
+      /* The count is a filter, not a ranking. Most rungs tie, because the model
+         reads correctly across a wide band; what the count reliably does is
+         reject the ends, where the glyph is far too big or small and the rung
+         finds almost nothing. Among the survivors, take the one whose measured
+         glyph lands nearest the size the model was trained on. */
+      var best = 0;
+      votes.forEach(function (v){ if (v.n > best) best = v.n; });
+      var live = votes.filter(function (v){ return v.n >= best - 1 && v.n > 0; });
+      if (!live.length) live = votes;
+      var pick = live[0];
+      live.forEach(function (v){
+        if (Math.abs(v.glyph - READ_GLYPH) < Math.abs(pick.glyph - READ_GLYPH)) pick = v;
+      });
+      return detectPass(sess, scaled(base, pick.f), DETECT_CONF, note, "Reading…")
+        .then(function (raw){
+          var glyph = raw.length ? median(raw.map(function (p){ return p.w; })) : 90;
+          var k = 1 / (pick.f * n);
+          return {
+            cards: mergeCards(raw, glyph, pips).map(function (p){
+              return { x: p.x * k, y: p.y * k, cls: p.cls, conf: p.conf };
+            }),
+            factor: pick.f, glyph: glyph * k, votes: votes
+          };
+        });
     });
   }
 
@@ -1964,12 +2198,19 @@ var reader = (function () {
     btn.disabled = true;
     note("Getting ready…");
     detectorReady(note).then(function (sess){
-      return detectFrame(sess, frameCanvas(), note);
-    }).then(function (hits){
-      CARDS = hits.map(function (h){
+      // the pip rule is for fans, not columns - see PIP_X above
+      return readFrame(sess, frameCanvas(), note, MODE === "unplayed");
+    }).then(function (res){
+      CARDS = res.cards.map(function (h){
         return { x: h.x, y: h.y, cls: h.cls, conf: h.conf, manual: false };
       });
-      UNDO = []; DETECTED = true;
+      /* How big this photo's indices are, in the frame's own pixels. Every
+         distance the review step cares about - how near the crosshair has to be,
+         how close two cards may sit - is a fraction of this, not a pixel count,
+         because a photo taken closer makes all of them bigger together. */
+      GLYPH = res.glyph || 90;
+      READ = { factor: res.factor, votes: res.votes };
+      UNDO = []; DETECTED = true; READS++;
       btn.disabled = false; note("");
       showReview();
     }, function (err){
@@ -1983,9 +2224,17 @@ var reader = (function () {
 
   var viewStage = null;
   var PAD = [["card", "Card"], ["two", "2"], ["joker", "Joker"]];
-  var COLOUR = { nat: "#1E7A46", joker: "#7B3FA0", two: "#1D4ED8" };
-  var TAKE_PX = 46;          // how close the crosshair must be to lift a card
-  var COLUMN_PX = 150;       // how near a book's column a card must be to inherit its rank
+  var COLOUR = { nat: "#1E7A46", joker: "#7B3FA0", two: "#1D4ED8",
+                 red3: "#C62828", black3: "#263238" };
+  /* All three were pixel counts chosen for photos at one camera distance. They
+     are fractions of the glyph now, for the same reason the merge is. At the
+     books scale - a 90px glyph - they come out at the numbers they used to be. */
+  var TAKE_F   = 46 / 90;    // how close the crosshair must be to lift a card
+  var COLUMN_F = 150 / 90;   // how near a book's column a card must be to inherit its rank
+  var DUP_F    = 26 / 90;    // two cards this close look like a double press
+  function takePx(){ return TAKE_F * GLYPH; }
+  function columnPx(){ return COLUMN_F * GLYPH; }
+  function dupPx(){ return DUP_F * GLYPH; }
 
   function showReview(){
     $("rfFrameSheet").hidden = true;
@@ -2012,7 +2261,10 @@ var reader = (function () {
     CARDS.forEach(function (c){
       var p = st.toScreen(c.x, c.y);
       if (p.x < -30 || p.x > s.w + 30 || p.y < -30 || p.y > s.h + 30) return;
-      var kind = c.cls === 11 ? "joker" : (c.cls === 12 ? "two" : "nat");
+      var kind = c.cls === JOKER_CLS ? "joker" : c.cls === TWO_CLS ? "two"
+               : c.cls === RED3_CLS ? "red3" : c.cls === BLACK3_CLS ? "black3" : "nat";
+      var label = kind === "joker" ? "JK" : kind === "two" ? "2"
+                : kind === "red3" ? "3" : kind === "black3" ? "3" : DETECT_CLASSES[c.cls];
       ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, Math.PI * 2);
       ctx.globalAlpha = 0.82; ctx.fillStyle = COLOUR[kind]; ctx.fill(); ctx.globalAlpha = 1;
       ctx.lineWidth = c.manual ? 3 : 2;
@@ -2020,7 +2272,7 @@ var reader = (function () {
       ctx.fillStyle = "#fff";
       ctx.font = "bold 11px -apple-system,Segoe UI,sans-serif";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(kind === "joker" ? "JK" : (kind === "two" ? "2" : DETECT_CLASSES[c.cls]), p.x, p.y);
+      ctx.fillText(label, p.x, p.y);
       ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
     });
     /* The crosshair does not follow the finger. It stays in the middle and the
@@ -2041,7 +2293,7 @@ var reader = (function () {
   }
 
   function nearestCard(pt){
-    var best = null, bd = TAKE_PX;
+    var best = null, bd = takePx();
     CARDS.forEach(function (c){
       var d = Math.hypot(c.x - pt.x, c.y - pt.y);
       if (d < bd){ bd = d; best = c; }
@@ -2053,20 +2305,27 @@ var reader = (function () {
      ground truth every wild fell within 14px of its book's column centre, so a
      card added near a column can take that column's rank and the person is only
      asked when there is genuinely nothing to infer from. */
+  /* Where each rank's book sits, as an x. Median, not mean: round 8 has a real
+     King lying 300px past the last book at the edge of the frame - not part of
+     the count, so nobody marks it, but the reader finds it and is right to. A
+     mean drags that rank's column across the photo and the wilds then join the
+     wrong book. One stray card cost two books before this was a median. */
   function columns(){
-    var sum = {}, n = {};
+    var by = {};
     CARDS.forEach(function (c){
-      if (c.cls >= 11) return;
-      sum[c.cls] = (sum[c.cls] || 0) + c.x;
-      n[c.cls] = (n[c.cls] || 0) + 1;
+      if (c.cls >= NATURALS) return;
+      (by[c.cls] = by[c.cls] || []).push(c.x);
     });
     var out = [];
-    Object.keys(n).forEach(function (k){ out.push({ cls: +k, x: sum[k] / n[k] }); });
+    Object.keys(by).forEach(function (k){
+      var v = by[k].sort(function (p, q){ return p - q; });
+      out.push({ cls: +k, x: v[v.length >> 1] });
+    });
     return out;
   }
 
   function inferRank(x){
-    var cols = columns(), best = null, bd = COLUMN_PX;
+    var cols = columns(), best = null, bd = columnPx();
     cols.forEach(function (c){
       var d = Math.abs(c.x - x);
       if (d < bd){ bd = d; best = c.cls; }
@@ -2080,9 +2339,17 @@ var reader = (function () {
     renderReview();
   }
 
+  /* Reading books, a card's rank comes from the column it sits in, so one
+     "Card" button covers every natural. An unplayed pile has no columns, so the
+     rank has to be asked for - and the two threes get their own buttons, because
+     they are the only cards where the COLOUR is worth points: a red 3 is -300
+     against a black 3's -100, and nothing else in the game turns on suit. */
+  var PAD_UNPLAYED = [["card", "Card"], ["two", "2"], ["joker", "Joker"],
+                      ["red3", "Red 3"], ["black3", "Black 3"]];
+
   function padBar(){
     var box = $("rfPad"); box.innerHTML = "";
-    PAD.forEach(function (p){
+    (MODE === "unplayed" ? PAD_UNPLAYED : PAD).forEach(function (p){
       var b = el("button", "btn kind", p[1]);
       b.id = "rfPad_" + p[0];
       b.onclick = function (){ place(p[0]); };
@@ -2105,9 +2372,13 @@ var reader = (function () {
       toast("The crosshair is off the photo");
       return;
     }
-    if (kind === "joker"){ push({ x: pt.x, y: pt.y, cls: 11, conf: 1, manual: true }); return; }
-    if (kind === "two"){   push({ x: pt.x, y: pt.y, cls: 12, conf: 1, manual: true }); return; }
-    var cls = inferRank(pt.x);
+    var fixed = { joker: JOKER_CLS, two: TWO_CLS, red3: RED3_CLS, black3: BLACK3_CLS };
+    if (fixed[kind] !== undefined){
+      push({ x: pt.x, y: pt.y, cls: fixed[kind], conf: 1, manual: true });
+      return;
+    }
+    // no books, no columns, so nothing to infer a rank from
+    var cls = MODE === "unplayed" ? null : inferRank(pt.x);
     if (cls === null){ askRank(pt); return; }
     push({ x: pt.x, y: pt.y, cls: cls, conf: 1, manual: true });
   }
@@ -2119,7 +2390,7 @@ var reader = (function () {
     var row = $("rfRankRow");
     row.hidden = false; row.innerHTML = "";
     row.appendChild(el("span", "rfteam", "Which rank?"));
-    DETECT_CLASSES.slice(0, 11).forEach(function (r, i){
+    DETECT_CLASSES.slice(0, NATURALS).forEach(function (r, i){
       var b = el("button", "btn", r);
       b.onclick = function (){
         row.hidden = true; row.innerHTML = "";
@@ -2161,34 +2432,97 @@ var reader = (function () {
     RANKS.forEach(function (r){ out[r] = { nat: 0, jok: 0, two: 0 }; });
     var cols = columns();
     CARDS.forEach(function (c){
-      if (c.cls < 11){ out[DETECT_CLASSES[c.cls]].nat++; return; }
+      if (c.cls < NATURALS){ out[DETECT_CLASSES[c.cls]].nat++; return; }
+      // only a Joker or a 2 joins a book; a three cannot be melded at all, so one
+      // read on a books photo is a false positive, not a wild to be filed away
+      if (c.cls !== JOKER_CLS && c.cls !== TWO_CLS) return;
       if (!cols.length) return;
       var best = cols[0];
       cols.forEach(function (k){ if (Math.abs(k.x - c.x) < Math.abs(best.x - c.x)) best = k; });
-      out[DETECT_CLASSES[best.cls]][c.cls === 11 ? "jok" : "two"]++;
+      out[DETECT_CLASSES[best.cls]][c.cls === JOKER_CLS ? "jok" : "two"]++;
     });
     return out;
   }
 
-  function renderReview(){
-    if (viewStage) viewStage.draw();
-    var b = books(), host = $("rfBooks");
+  /* ---------------- unplayed cards: a count, not books ---------------- */
+
+  /* Which LEFT_ROWS bucket a detected class belongs to. The app already scores
+     unplayed cards by point value rather than by rank, so this is the whole
+     mapping - there is no book to rebuild and no column to infer. */
+  function bucketOf(cls){
+    var k = DETECT_CLASSES[cls];
+    if (k === "A") return "ace";
+    if (k === "joker") return "joker";
+    if (k === "two") return "two";
+    if (k === "3red") return "red3";
+    if (k === "3black") return "black3";
+    if (k === "10" || k === "J" || k === "Q" || k === "K") return "high";
+    return "low";
+  }
+
+  function tally(){
+    var out = {};
+    LEFT_ROWS.forEach(function (r){ out[r.key] = 0; });
+    CARDS.forEach(function (c){ out[bucketOf(c.cls)]++; });
+    return out;
+  }
+
+  /* What the pile is worth, by the rules in force. Negative, like the scorer. */
+  function heldPoints(){
+    var t = tally(), rules = S.rules || {}, total = 0;
+    LEFT_ROWS.forEach(function (r){ total -= t[r.key] * (r.val(rules) || 0); });
+    return total;
+  }
+
+  function renderBooksTable(host){
+    var b = books();
     var rows = RANKS.slice().reverse().filter(function (r){
       var c = b[r]; return c.nat + c.jok + c.two > 0;
     });
     if (!rows.length){
       host.innerHTML = '<p class="note" style="margin-top:10px">No cards yet.</p>';
-    } else {
-      var html = '<div class="rfline" style="margin-top:10px"><b>Book</b><span class="rftally">' +
-                 '<span>cards</span><span>Jokers</span><span>2s</span></span><span></span></div>';
-      rows.forEach(function (r){
-        var c = b[r];
-        html += '<div class="rfline" style="margin-top:4px"><b>' + r + '</b>' +
-                '<span class="rftally"><span>' + c.nat + '</span><span>' + c.jok +
-                '</span><span>' + c.two + '</span></span><span></span></div>';
-      });
-      host.innerHTML = html;
+      return;
     }
+    var html = '<div class="rfline" style="margin-top:10px"><b>Book</b><span class="rftally">' +
+               '<span>cards</span><span>Jokers</span><span>2s</span></span><span></span></div>';
+    rows.forEach(function (r){
+      var c = b[r];
+      html += '<div class="rfline" style="margin-top:4px"><b>' + r + '</b>' +
+              '<span class="rftally"><span>' + c.nat + '</span><span>' + c.jok +
+              '</span><span>' + c.two + '</span></span><span></span></div>';
+    });
+    host.innerHTML = html;
+  }
+
+  /* Every bucket, with what is recorded now beside what this photo says, because
+     Apply replaces rather than adds and that is worth seeing before the tap. */
+  function renderHeldTable(host){
+    var t = tally(), now = S.current[TEAM].left || {}, rules = S.rules || {};
+    var html = '<div class="rfline" style="margin-top:10px"><b>Unplayed</b>' +
+               '<span class="rftally"><span>now</span><span>photo</span><span>each</span></span>' +
+               '<span></span></div>';
+    LEFT_ROWS.forEach(function (r){
+      var was = now[r.key] || 0, got = t[r.key], moved = was !== got;
+      html += '<div class="rfline" style="margin-top:4px"><b>' + r.label + '</b>' +
+              '<span class="rftally"><span' + (moved ? ' style="opacity:.55"' : '') + '>' + was +
+              '</span><span' + (moved ? ' style="font-weight:700"' : '') + '>' + got +
+              '</span><span>&minus;' + (r.val(rules) || 0) + '</span></span><span></span></div>';
+    });
+    var pts = heldPoints();
+    html += '<div class="rfline" style="margin-top:8px"><b>' + CARDS.length + ' card' +
+            (CARDS.length === 1 ? '' : 's') + '</b><span class="rftally"><span></span>' +
+            '<span></span><span><b>' + pts + '</b></span></span><span></span></div>';
+    host.innerHTML = html;
+  }
+
+  function renderReview(){
+    if (viewStage) viewStage.draw();
+    var host = $("rfBooks");
+    if (MODE === "unplayed") renderHeldTable(host); else renderBooksTable(host);
+    var applyBtn = $("rfApply");
+    if (applyBtn) applyBtn.textContent = MODE === "unplayed"
+      ? "Record these as " + S.names[TEAM] + "'s unplayed cards"
+      : "Add these to the round";
     var warn = $("rfWarn"); warn.innerHTML = "";
     function say(text, bad){
       var li = el("li", bad ? "bad" : null, text);
@@ -2201,15 +2535,41 @@ var reader = (function () {
     var dup = 0;
     for (var i = 0; i < CARDS.length; i++){
       for (var j = i + 1; j < CARDS.length; j++){
-        if (Math.hypot(CARDS[i].x - CARDS[j].x, CARDS[i].y - CARDS[j].y) < 26){ dup++; break; }
+        if (Math.hypot(CARDS[i].x - CARDS[j].x, CARDS[i].y - CARDS[j].y) < dupPx()){ dup++; break; }
       }
     }
     if (dup) say(dup + " card" + (dup === 1 ? " sits" : "s sit") + " almost on top of another. Zoom in and check.");
     var manual = CARDS.filter(function (c){ return c.manual; }).length;
     if (manual) say(manual + " card" + (manual === 1 ? "" : "s") + " you added by hand — ringed in gold.");
+    if (MODE === "unplayed"){
+      /* The two threes are the only cards where reading the colour wrong costs
+         real points - 200 between them - so they are worth a second look by
+         name rather than being left to the table above. */
+      var t = tally();
+      if (t.red3 || t.black3){
+        say(t.red3 + " red three" + (t.red3 === 1 ? "" : "s") + " and " + t.black3 +
+            " black three" + (t.black3 === 1 ? "" : "s") + " — worth " +
+            (t.red3 * 300 + t.black3 * 100) + " against this team. Check the colours.");
+      }
+      var had = 0;
+      LEFT_ROWS.forEach(function (r){ had += S.current[TEAM].left[r.key] || 0; });
+      if (had) say(S.names[TEAM] + " already has " + had + " unplayed card" +
+                   (had === 1 ? "" : "s") + " recorded. This photo replaces them, " +
+                   "so it has to be the whole pile.", true);
+    } else {
+      var threes = CARDS.filter(function (c){
+        return c.cls === RED3_CLS || c.cls === BLACK3_CLS;
+      }).length;
+      // a three cannot be melded, so one on a books photo is a misread, and it
+      // is silently ignored by books() - say so rather than leaving it a mystery
+      if (threes) say(threes + " three" + (threes === 1 ? "" : "s") + " read on a books " +
+                      "photo. A three cannot go in a book, so " +
+                      (threes === 1 ? "it is" : "they are") + " left out of the counts.");
+    }
   }
 
   function apply(){
+    if (MODE === "unplayed") return applyUnplayed();
     if (!canEdit(TEAM, "books")){ toast("That team's books are locked"); return; }
     if (!CARDS.length){ toast("Nothing to add yet"); return; }
     var b = books(), n = 0;
@@ -2221,21 +2581,75 @@ var reader = (function () {
     });
     if (!n){ toast("Nothing to add yet"); return; }
     save(P(TEAM, "books"));
+    reset();
     renderAll();
     showPanel("round");
     toast(n + " book" + (n === 1 ? "" : "s") + " added to " + S.names[TEAM]);
   }
 
+  /* One photo of the gathered pile is the team's whole unplayed count, so this
+     REPLACES rather than adds. The review sheet shows what is there now beside
+     what the photo says, so a second read of the same pile - or a read taken
+     against the wrong team - is visible before the button, not after it. */
+  function applyUnplayed(){
+    if (!canEdit(TEAM, "left")){ toast("That team's unplayed cards are locked"); return; }
+    if (!CARDS.length){ toast("Nothing read yet"); return; }
+    var t = tally(), had = 0;
+    LEFT_ROWS.forEach(function (r){ had += S.current[TEAM].left[r.key] || 0; });
+    LEFT_ROWS.forEach(function (r){ S.current[TEAM].left[r.key] = t[r.key]; });
+    save(P(TEAM, "left"));
+    var n = CARDS.length;
+    reset();
+    renderAll();
+    showPanel("round");
+    toast(n + " unplayed card" + (n === 1 ? "" : "s") +
+          " recorded for " + S.names[TEAM] + (had ? " (replacing " + had + ")" : ""));
+  }
+
   /* ---------------- wiring ---------------- */
 
-  function teamPicker(){
-    var box = $("rfTeam"); box.innerHTML = "";
-    ["A","B"].forEach(function (t){
-      var b = el("button", null, S.names[t]);
-      b.setAttribute("aria-pressed", TEAM === t ? "true" : "false");
-      b.onclick = function (){ TEAM = t; teamPicker(); };
+  /* The team is not chosen here. It is whichever team the round is showing, and
+     the page says so rather than asking again - two pickers for one fact was
+     the confusing part of the old arrangement, not the tab. */
+  function whoLine(){
+    var w = $("rfWho");
+    if (w) w.textContent = (MODE === "unplayed" ? "Unplayed" : "Books") +
+                           " · " + S.names[TEAM];
+    modePicker();
+  }
+
+  var LEDE = {
+    books: "One photo of one team's books, taken from above with the whole hand in " +
+           "frame. The reader finds every card's corner index; you check it, fix " +
+           "anything it got wrong, and add the counts to the round.",
+    unplayed: "One photo of everything that team still held when the hand ended, " +
+              "gathered together and spread out. The reader counts it by point " +
+              "value and replaces whatever is recorded now — so photograph the " +
+              "whole pile at once rather than one player at a time."
+  };
+
+  function modePicker(){
+    var box = $("rfMode");
+    if (!box) return;
+    box.innerHTML = "";
+    [["books", "Books"], ["unplayed", "Unplayed"]].forEach(function (m){
+      var b = el("button", null, m[1]);
+      b.setAttribute("aria-pressed", MODE === m[0] ? "true" : "false");
+      b.onclick = function (){ setMode(m[0]); };
       box.appendChild(b);
     });
+    var lede = $("rfLede");
+    if (lede) lede.textContent = LEDE[MODE];
+  }
+
+  function setMode(m){
+    if (m !== "books" && m !== "unplayed") return;
+    if (m === MODE){ modePicker(); return; }
+    MODE = m;
+    L.photoMode = m; saveLocal();
+    whoLine();
+    padBar();
+    if (DETECTED) renderReview();
   }
 
   function on(id, ev, fn){
@@ -2247,7 +2661,7 @@ var reader = (function () {
     return createImageBitmap(file).then(function (bm){
       IMG = bm;
       CARDS = []; UNDO = []; DETECTED = false;
-      CROP = { top: 0, bottom: 0 };
+      CROP = { top: 0, bottom: 0, left: 0, right: 0 };
       /* A hand photographed from the side of the table comes out portrait with
          the indices lying over; landscape ones are usually already upright.
          A guess, not a guarantee - the person confirms before anything is read. */
@@ -2258,8 +2672,34 @@ var reader = (function () {
     });
   }
 
+  /* Back to "Take photo", holding nothing from the last read. Called when the
+     page is opened and again once a read has been applied, so the same photo
+     can never be applied twice - which matters because books ADD, and a second
+     press would double a hand that was already right. */
+  function reset(){
+    IMG = null; ROTCV = null; ROT = 0;
+    CROP = { top: 0, bottom: 0, left: 0, right: 0 };
+    CARDS = []; UNDO = []; DETECTED = false;
+    GLYPH = 90; READ = null;
+    $("rfFrameSheet").hidden = true;
+    $("rfReviewSheet").hidden = true;
+  }
+
+  /* The one way in. The table that was tapped says what is being read and the
+     round says for whom, so neither is asked for again. */
+  function open(mode){
+    TEAM = (L.view === "B") ? "B" : "A";
+    if (mode === "books" || mode === "unplayed"){
+      MODE = mode; L.photoMode = mode; saveLocal();
+    }
+    reset();
+    whoLine();
+    padBar();
+    showPanel("photo");
+  }
+
   function init(){
-    teamPicker();
+    whoLine();
     padBar();                 // built once; the sheet it lives in is what hides
     on("rfPick", "click", function (){ $("rfFile").click(); });
     on("rfPickAny", "click", function (){ $("rfFileAny").click(); });
@@ -2275,6 +2715,9 @@ var reader = (function () {
     on("rfFrameOk", "click", runDetect);
     on("rfBack", "click", showFrame);
     on("rfApply", "click", apply);
+    on("rfLeave", "click", function (){ showPanel("round"); });
+    on("rfOpenBooks", "click", function (){ open("books"); });
+    on("rfOpenLeft", "click", function (){ open("unplayed"); });
     window.addEventListener("resize", function (){
       if (frameStage && !$("rfFrameSheet").hidden){ frameStage.resize(frameStage.canvas.clientHeight); frameStage.clampView(); frameStage.draw(); }
       if (viewStage && !$("rfReviewSheet").hidden){ viewStage.resize(viewStage.canvas.clientHeight); viewStage.clampView(); viewStage.draw(); }
@@ -2290,22 +2733,35 @@ var reader = (function () {
 
   return {
     init: init,
-    refresh: function (){ teamPicker(); },
+    open: open,
+    refresh: function (){ whoLine(); },
     shown: shown,
     /* for the harness: drive the reader without a file dialog or a finger */
     __test: {
       load: loadPhoto,
       turnTo: function (deg){ while (ROT !== ((deg % 360) + 360) % 360) turn(1); },
-      setCrop: function (t, b){ CROP.top = t; CROP.bottom = b; showFrame(); },
+      setCrop: function (t, b, l, r){
+        CROP.top = t; CROP.bottom = b;
+        if (l !== undefined) CROP.left = l;
+        if (r !== undefined) CROP.right = r;
+        showFrame();
+      },
+      setMode: setMode,
+      open: open,
+      reset: reset,
       detect: runDetect,
       state: function (){
-        return { rot: ROT, crop: { top: CROP.top, bottom: CROP.bottom },
+        return { rot: ROT,
+                 crop: { top: CROP.top, bottom: CROP.bottom,
+                         left: CROP.left, right: CROP.right },
                  frame: { w: frameW(), h: frameH() },
                  cards: CARDS.map(function (c){
                    return { x: c.x, y: c.y, cls: c.cls, kind: DETECT_CLASSES[c.cls],
                             conf: c.conf, manual: c.manual };
                  }),
-                 books: books(), detected: DETECTED, team: TEAM };
+                 books: books(), tally: tally(), points: heldPoints(),
+                 glyph: GLYPH, read: READ, mode: MODE, reads: READS,
+                 detected: DETECTED, team: TEAM };
       },
       /* Zooms first, the way a finger has to: while the whole frame fits on
          screen there is nothing to pan, so the crosshair cannot leave the
@@ -2319,7 +2775,9 @@ var reader = (function () {
       },
       crosshair: function (){ return viewStage.centreImage(); },
       place: place, takeOut: takeOut, undo: undoOne, apply: apply,
-      classes: DETECT_CLASSES, merge: DETECT_MERGE, model: DETECT_MODEL
+      classes: DETECT_CLASSES, model: DETECT_MODEL,
+      merge: { books: MERGE_BOOKS, fan: MERGE_FAN, pipX: PIP_X, pipY: PIP_Y },
+      ladder: LADDER, canon: CANON_W, readGlyph: READ_GLYPH
     }
   };
 })();
@@ -2379,7 +2837,10 @@ $("resync").onclick = function () { sync.reconnect(); toast("Reconnecting"); };
 
 reader.init();
 renderAll();
-showPanel(L.tab || "round");
+/* A phone that ran the tabbed version may have "photo" stored as its last tab.
+   There is no photo in it on a cold start and no tab to leave it by, so it
+   opens on the round like any other first run. */
+showPanel(L.tab === "history" || L.tab === "setup" ? L.tab : "round");
 sync.start();
 
 /* Lets the app open with no network at all. Needs a secure context, so it does
