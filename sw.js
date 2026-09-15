@@ -8,7 +8,7 @@
  * Bump VERSION on every deploy. The old cache is dropped on activate, so a stale
  * shell can never outlive a release.
  */
-const VERSION = "9deck-2026-09-15b";
+const VERSION = "9deck-2026-09-15d";
 const SHELL = VERSION + "-shell";
 const RUNTIME = VERSION + "-runtime";
 /* The card detector's model (12 MB) and its runtime are cached here, in a

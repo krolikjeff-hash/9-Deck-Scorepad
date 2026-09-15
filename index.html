@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
 :root{
-  --baize:#14432E;
+  --baize:#154730;
   --baize-dark:#0E3122;
   --baize-line:#1D5A3E;
   --stock:#F6F1E4;
@@ -35,8 +35,21 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{
-  background:var(--baize-dark);
-  background-image:radial-gradient(ellipse at 50% 0%, var(--baize) 0%, var(--baize-dark) 70%);
+  /* The mark, stepped and repeated in a brick lattice, on a flat ground.
+     The vignette that used to live here was tried underneath the pattern
+     first and had to go: it darkened precisely the side gutters where the
+     pattern has room to show, and at these settings the result was invisible
+     on both a phone and a desktop. The pattern is what gives the cloth depth
+     now, so the gradient has nothing left to do.
+
+     At 15% over this ground the marks blend to #1A563A, within a shade of
+     --baize-line: the pattern and the app's hairlines are the same green by
+     arithmetic rather than by luck. Regenerate with patgen.py; do not edit
+     the data URI by hand. */
+  background-color:var(--baize);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='33.33' height='83.30' viewBox='0 0 572.39 1430.38'%3E%3Cdefs%3E%3Cpath id='n' fill-rule='evenodd' d='M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z '/%3E%3C/defs%3E%3Cg fill='%2334AD76' fill-opacity='0.1500'%3E%3Cuse href='%23n' transform='translate(45.70 57.09) translate(-8.50 -8.50)'/%3E%3Cuse href='%23n' transform='translate(-240.50 772.29) translate(-8.50 -8.50)'/%3E%3Cuse href='%23n' transform='translate(331.89 772.29) translate(-8.50 -8.50)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:33.33px 83.30px;
+  background-repeat:repeat;
   background-attachment:fixed;
   color:var(--stock);
   font-family:var(--font-body);
@@ -56,8 +69,6 @@ input{font:inherit}
 }
 .mast-in{display:flex;align-items:flex-end;gap:14px;border-bottom:1px solid var(--baize-line)}
 .mast-left{flex:1 1 auto;min-width:0}
-.mast-in .mark{display:block;color:var(--brass-soft);flex:0 0 50px;
-  opacity:.9;margin-bottom:-1px}
 .wordmark-text{
   font-family:var(--font-card);
   font-size:19px;letter-spacing:.01em;
@@ -96,7 +107,11 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 /* ---------- team switch ---------- */
 .teamswitch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .teamswitch button{
-  background:rgba(246,241,228,.07);
+  /* Opaque rather than a 7% wash: with a pattern behind it, a translucent tile
+     puts 9s directly under the team's name and score. The wash was invisible
+     against flat green and only became noticeable once there was something to
+     see through to. */
+  background:#1A5439;
   border:1px solid var(--baize-line);
   border-radius:5px;padding:10px 8px;text-align:left;
 }
@@ -140,7 +155,7 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 .divline{grid-column:1/-1;height:1px;background:var(--stock-edge);margin:2px 0}
 
 /* ---------- leftovers ---------- */
-.sheethead{display:flex;align-items:center;gap:10px}
+.sheethead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 /* Both the claim badge and the camera button want to sit at the right-hand end.
    Giving each margin-left:auto does that whether one is present or both: the
    first takes the slack, the second finds none left and tucks in beside it. */
@@ -159,8 +174,6 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 .camera svg path{fill:none;stroke:currentColor;stroke-width:1.9;
   stroke-linejoin:round}
 .camera svg circle{fill:none;stroke:currentColor;stroke-width:1.9}
-@media (max-width:360px){.camera span{position:absolute;width:1px;height:1px;
-  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 .claim{font-size:12px;font-weight:400;font-family:var(--font-body);
   border:1px solid var(--stock-edge);background:var(--stock-sunk);border-radius:8px;
   padding:4px 10px;color:var(--ink-soft)}
@@ -250,8 +263,9 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 .field input{width:100%;padding:10px;border:1px solid var(--stock-edge);border-radius:5px;
   background:var(--stock-sunk);color:var(--ink)}
 .rules{display:grid;grid-template-columns:1fr 92px;gap:6px 8px;align-items:center;font-size:14px}
-.rules input{padding:8px;border:1px solid var(--stock-edge);border-radius:5px;
-  background:var(--stock-sunk);color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;width:100%}
+.rules .ruleval{padding:8px;border-radius:5px;background:var(--stock-sunk);
+  color:var(--ink-soft);text-align:right;font-variant-numeric:tabular-nums;
+  font-weight:600}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .btn{border:1px solid var(--stock-edge);background:var(--stock-sunk);border-radius:5px;
   padding:10px 14px;font-size:14px;color:var(--ink);text-decoration:none;display:inline-block}
@@ -340,11 +354,10 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
       <p class="wordmark-text">9 Deck <b>Scorepad</b></p>
       <nav class="tabs" role="tablist">
         <button class="tab" role="tab" id="tab-round" aria-selected="true" data-panel="round">Round</button>
-        <button class="tab" role="tab" id="tab-history" aria-selected="false" data-panel="history">History</button>
+        <button class="tab" role="tab" id="tab-history" aria-selected="false" data-panel="history">Game Totals</button>
         <button class="tab" role="tab" id="tab-setup" aria-selected="false" data-panel="setup">Setup</button>
       </nav>
     </div>
-    <svg class="mark" width="50" height="79" viewBox="0 0 500 790" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path fill-rule="evenodd" fill="currentColor" d="M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z"/></svg>
   </div>
 </header>
 
@@ -356,13 +369,13 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
     <div class="teamswitch" id="teamswitch"></div>
 
     <div class="sheet">
-      <h2 class="sheethead">Books on the table<span id="booksclaim"></span><button class="camera" id="rfOpenBooks" title="Read the books from a photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3l-1.2 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.8L15 3z"/><circle cx="12" cy="12.5" r="3.6"/></svg><span>Photo</span></button></h2>
+      <h2 class="sheethead">Books on the table<span id="booksclaim"></span><button class="camera" id="rfOpenBooks" title="Score the books from a photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3l-1.2 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.8L15 3z"/><circle cx="12" cy="12.5" r="3.6"/></svg><span>Automatic Scoring</span></button></h2>
       <div class="grid" id="booksgrid"></div>
       <ul class="warns" id="bookwarns"></ul>
     </div>
 
     <div class="sheet">
-      <h2 class="sheethead">Cards left unplayed<span id="leftclaim"></span><button class="camera" id="rfOpenLeft" title="Count the unplayed cards from a photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3l-1.2 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.8L15 3z"/><circle cx="12" cy="12.5" r="3.6"/></svg><span>Photo</span></button></h2>
+      <h2 class="sheethead">Cards left unplayed<span id="leftclaim"></span><button class="camera" id="rfOpenLeft" title="Score the unplayed cards from a photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3l-1.2 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.8L15 3z"/><circle cx="12" cy="12.5" r="3.6"/></svg><span>Automatic Scoring</span></button></h2>
       <p class="note">Every card still unplayed when the hand ends, across everyone on this team. Grouped by point value rather than rank.</p>
       <div class="leftgrid" id="leftgrid"></div>
     </div>
@@ -462,7 +475,7 @@ main{max-width:640px;margin:0 auto;padding:14px 16px 150px}
 
     <div class="sheet">
       <h2>Scoring rules</h2>
-      <p class="note">Change a value and every saved hand is re-scored from its stored card counts.</p>
+      <p class="note">How a hand is worth what it is worth. These are fixed &mdash; every saved round is scored from its stored card counts using exactly these numbers, so they are shown here to settle an argument rather than to be changed.</p>
       <div class="rules" id="rulesgrid"></div>
     </div>
 
@@ -519,7 +532,7 @@ var store = (function () {
 
 var MARK_SVG = "<svg class=\"mark\" width=\"53\" height=\"84\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
 var MARK9_SVG = "<svg class=\"mark\" width=\"50\" height=\"79\" viewBox=\"0 0 500 790\" preserveAspectRatio=\"xMidYMid meet\" aria-hidden=\"true\"><path fill-rule=\"evenodd\" fill=\"currentColor\" d=\"M 379 609.5 L 120 609.5 L 119 608.5 L 109 608.5 L 96 604.5 L 92 604.5 L 82 600.5 L 71 595.5 L 58 587.5 L 42.5 574 L 31.5 561 L 21.5 545 L 19.5 538 L 14.5 528 L 9.5 506 L 9.5 494 L 8.5 493 L 9 439.5 L 140 439.5 L 141.5 454 L 143.5 461 L 146.5 468 L 153.5 477 L 166 485.5 L 174 488.5 L 180 488.5 L 181 489.5 L 318 489.5 L 319 488.5 L 325 488.5 L 338 482.5 L 346.5 475 L 354.5 462 L 357.5 448 L 357.5 410 L 356.5 409 L 355.5 399 L 350.5 389 L 342 379.5 L 335 374.5 L 326 370.5 L 321 370.5 L 320 369.5 L 125 369.5 L 124 368.5 L 107 367.5 L 88 362.5 L 76 357.5 L 62 349.5 L 49 339.5 L 30.5 319 L 22.5 306 L 15.5 290 L 9.5 266 L 9.5 254 L 8.5 253 L 8.5 126 L 9.5 112 L 14.5 90 L 23.5 70 L 30.5 59 L 49 38.5 L 56 32.5 L 70 23.5 L 90 14.5 L 111 9.5 L 123 9.5 L 124 8.5 L 375 8.5 L 376 9.5 L 388 9.5 L 411 15.5 L 425 21.5 L 440 30.5 L 456.5 45 L 467.5 58 L 476.5 73 L 484.5 93 L 488.5 109 L 488.5 120 L 489.5 121 L 489.5 497 L 488.5 498 L 488.5 509 L 483.5 529 L 475.5 547 L 467.5 560 L 452 577.5 L 440 587.5 L 424 597.5 L 406 604.5 L 390 608.5 L 380 608.5 Z M 314.5 249 L 329 246.5 L 337 242.5 L 345 236.5 L 351.5 228 L 356.5 215 L 356.5 209 L 357.5 208 L 357.5 170 L 356.5 169 L 356.5 162 L 351.5 150 L 345.5 142 L 336 134.5 L 327 130.5 L 316 129.5 L 315 128.5 L 184 128.5 L 183 129.5 L 172 130.5 L 161 135.5 L 147.5 149 L 142.5 160 L 141.5 171 L 140.5 172 L 140.5 206 L 141.5 207 L 141.5 213 L 142.5 218 L 147.5 229 L 156 238.5 L 163 243.5 L 172 247.5 L 183 248.5 L 184 249.5 Z M 304.17 748.58 L 290.33 748.42 L 281.33 747.25 L 272.5 744.75 L 267.83 742.75 L 263.33 739.92 L 256.08 733.33 L 249.42 724.67 L 245.08 715.67 L 242.58 706 L 241.42 693.83 L 242.08 679.17 L 244.92 666.5 L 248.42 658.5 L 254.25 650.33 L 261.5 643.75 L 270.67 638.42 L 280.83 635.25 L 289.83 633.92 L 306.17 633.92 L 319.17 636.42 L 326.17 639.25 L 334 644.75 L 339.25 650.33 L 343.58 656.67 L 348.42 667.83 L 348.33 668.58 L 347 668.92 L 318 675.08 L 315.42 668.83 L 310.17 663.25 L 303.67 660.25 L 296.83 659.58 L 293.33 660.08 L 287.5 662.25 L 283.25 665.67 L 280.08 669.83 L 277.75 675.33 L 276.42 681.67 L 275.92 688 L 276.42 700.67 L 278.08 709 L 279.42 712.5 L 281.42 715.67 L 286.5 720.08 L 289.83 721.58 L 296.67 722.75 L 301.5 722.42 L 307.5 720.58 L 310.17 718.92 L 314.75 713.5 L 317.25 708.17 L 319.33 701.08 L 349.42 710.17 L 347.08 718.83 L 344.08 725.33 L 338.08 734 L 333 738.75 L 328.17 742.25 L 320.17 745.92 L 315 747.25 Z M 66.33 746.75 L 13.58 746.67 L 13.67 635.58 L 67.17 635.58 L 74.17 635.92 L 82.33 637.25 L 91 640.42 L 98.5 645.42 L 104.08 651 L 109.92 660 L 113.75 671.17 L 115.75 685.33 L 115.75 697.5 L 114.42 709.67 L 112.75 716.33 L 109.92 722.83 L 107.75 726.5 L 102.08 733.5 L 92.83 740.75 L 87.17 743.25 L 82.33 744.58 L 74.5 746.08 Z M 227.17 746.75 L 133.58 746.67 L 133.67 635.58 L 225.58 635.67 L 225.5 659.42 L 168.08 659.67 L 168.33 676.92 L 221.42 677 L 221.33 699.75 L 168.33 699.75 L 168.08 721.17 L 227.17 721.42 Z M 483.33 746.75 L 441.33 746.75 L 418.33 701.75 L 416.42 703 L 400.58 719.67 L 400.5 746.75 L 366.17 746.75 L 366.08 635.67 L 400.58 635.67 L 400.58 676.33 L 401.33 676.42 L 436.17 635.58 L 481.33 635.58 L 481.42 636.33 L 479.42 638.5 L 443.92 675 L 441.75 678 L 483.42 745.83 Z M 61.08 721.17 L 66.5 720.58 L 72.17 718.58 L 75.75 715.5 L 78.92 710 L 80.75 702.17 L 81.25 694.67 L 80.92 683.17 L 80.08 677.83 L 78.42 672.17 L 76.08 668.17 L 73.17 665.25 L 70.67 663.75 L 62.33 661.25 L 48.33 660.92 L 48.08 721 Z\"/></svg>";
-var APP_VERSION = "2026-09-15b";
+var APP_VERSION = "2026-09-15d";
 var KEY = "ninedecks.v1";
 var LKEY = "ninedecks.local.v1";
 
@@ -635,9 +648,12 @@ var RULE_ROWS = [
   ["vTwo",   "Card value: 2"],
   ["vJoker", "Card value: Joker"],
   ["pBlack3","Penalty: black 3"],
-  ["pRed3",  "Penalty: red 3"],
-  ["decks",  "Decks in play"]
+  ["pRed3",  "Penalty: red 3"]
 ];
+/* `decks` is deliberately NOT in that list. It is still a rule - scoreTeam's
+   validation uses it to say a rank cannot hold more than decks x 4 cards - but
+   it is a fact about the physical shoe rather than a score anyone would change,
+   so it is not worth a row in a panel that no longer takes input. */
 
 /* ============================================================
    State
@@ -1278,8 +1294,8 @@ function renderCameras() {
     b.disabled = locked;
     b.title = locked
       ? S.names[L.view] + " is locked on this phone"
-      : (p[1] === "books" ? "Read the books from a photo"
-                          : "Count the unplayed cards from a photo");
+      : (p[1] === "books" ? "Score the books from a photo"
+                          : "Score the unplayed cards from a photo");
   });
 }
 
@@ -1392,18 +1408,15 @@ function renderSetup() {
   $("nameB").value = S.names.B;
   var g = $("rulesgrid");
   g.innerHTML = "";
+  /* Shown, not edited. The values still live in S.rules and still sync, and
+     scoring still reads every one of them from there - a restored backup that
+     carries different numbers will display and score by its own. What is gone
+     is the input, because the rules of the game are not a per-phone setting and
+     one person quietly retyping a card value mid-game re-scores every saved
+     round on every phone. */
   RULE_ROWS.forEach(function (r) {
-    var key = r[0];
     g.appendChild(el("div", null, r[1]));
-    var inp = document.createElement("input");
-    inp.type = "number"; inp.inputMode = "numeric"; inp.min = "0";
-    inp.value = S.rules[key];
-    inp.onchange = function () {
-      var v = parseInt(inp.value, 10);
-      if (isNaN(v) || v < 0) { inp.value = S.rules[key]; return; }
-      S.rules[key] = v; save("shared.rules"); renderAll(); toast("Rule updated");
-    };
-    g.appendChild(inp);
+    g.appendChild(el("div", "ruleval", String(S.rules[r[0]])));
   });
 }
 
@@ -1453,7 +1466,7 @@ function reopenRound(idx) {
   }
   ask("Reopen round " + (idx + 1) + "?",
       "It comes off both teams' totals and goes back to the Round tab. Saving it "
-      + "again puts it at the end of the history, so later rounds shift up a number.",
+      + "again puts it at the end of Game Totals, so later rounds shift up a number.",
       "Reopen", function () {
     var r = JSON.parse(JSON.stringify(S.rounds[idx]));
     S.rounds.splice(idx, 1);
